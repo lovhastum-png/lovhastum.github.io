@@ -1,26 +1,182 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <title>星旅者 · 星图探索</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    /* ===== 全局基础 ===== */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #0b1a2a, #02050a);
+      color: #e6f1ff;
+      overflow: hidden;
+    }
+
+    /* ===== 返回首页 ===== */
+    .back-link {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      color: #7fd4ff;
+      text-decoration: none;
+      z-index: 10;
+      transition: color 0.3s;
+    }
+
+    .back-link:hover {
+      color: #ffffff;
+    }
+
+    /* ===== 主布局 ===== */
+    .app {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ===== 左侧星空 ===== */
+    .space-panel {
+      position: relative;
+      flex: 2;
+      background: #000;
+      overflow: hidden;
+
+      opacity: 0;
+      transform: scale(0.97);
+      animation: spaceFadeIn 1s ease-out forwards;
+    }
+
+    canvas#starfield {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* HUD 标题 */
+    .hud-title {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+    }
+
+    .hud-title h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #9ad7ff;
+    }
+
+    .hud-title p {
+      margin: 4px 0 0;
+      font-size: 14px;
+      color: #b7d6ec;
+    }
+
+    /* 核心按钮 */
+    .core-button-wrapper {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .core-button {
+      padding: 14px 28px;
+      background: rgba(20, 60, 100, 0.85);
+      border: 1px solid rgba(120, 200, 255, 0.6);
+      border-radius: 24px;
+      color: #e6f1ff;
+      font-size: 15px;
+      cursor: pointer;
+
+      animation: buttonPulse 2.5s ease-in-out infinite;
+    }
+
+    /* ===== 右侧信息面板 ===== */
+    .info-panel {
+      flex: 1;
+      background: rgba(10, 25, 45, 0.92);
+      border-left: 1px solid rgba(120, 200, 255, 0.25);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+
+      opacity: 0;
+      transform: translateX(40px);
+      animation: infoSlideIn 0.8s ease-out forwards;
+      animation-delay: 0.3s;
+    }
+
+    .status-bar {
+      font-size: 14px;
+      line-height: 1.6;
+      border-bottom: 1px solid rgba(120, 200, 255, 0.2);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .info-content {
+      flex: 1;
+      font-size: 14px;
+      color: #bcd6e8;
+    }
+
+    /* ===== 动画定义 ===== */
+    @keyframes spaceFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes infoSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes buttonPulse {
+      0% {
+        box-shadow: 0 0 10px rgba(120, 200, 255, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 26px rgba(120, 200, 255, 0.6);
+      }
+      100% {
+        box-shadow: 0 0 10px rgba(120, 200, 255, 0.3);
+      }
+    }
+  </style>
 </head>
+
 <body>
   <a href="index.html" class="back-link">← 返回首页</a>
 
   <div class="app">
-    <!-- 左侧：星空 / Three.js 画布 -->
+    <!-- 左侧星空 -->
     <div class="space-panel">
       <canvas id="starfield"></canvas>
 
-      <!-- 左上角 HUD 标题 -->
       <div class="hud-title">
         <h1>星旅者 · 星图探索</h1>
         <p>点击星空随机锁定一颗恒星</p>
       </div>
 
-      <!-- 底部核心按钮（状态不同，文案会变） -->
       <div class="core-button-wrapper">
         <button id="coreButton" class="core-button">
           开始探索 · 锁定一颗恒星
@@ -28,7 +184,7 @@
       </div>
     </div>
 
-    <!-- 右侧：信息 / 状态 / 提示 -->
+    <!-- 右侧信息 -->
     <div class="info-panel">
       <div class="status-bar">
         <div>
@@ -42,14 +198,13 @@
       </div>
 
       <div id="infoContent" class="info-content">
-        <!-- 内容由 starfield.js 动态填充 -->
+        等待星图扫描结果……
       </div>
     </div>
   </div>
 
-  <!-- three.js CDN -->
+  <!-- Three.js（后续可接你的星空逻辑） -->
   <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
-  <!-- 星图逻辑 -->
-  <script src="js/starfield.js"></script>
 </body>
 </html>
+
