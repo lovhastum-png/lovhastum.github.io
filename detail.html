@@ -1,19 +1,111 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <title>星旅者 · 项目详情</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- 内联 CSS（已合并） -->
+  <style>
+    /* ===== 全局基础样式 ===== */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #0b1a2a, #02050a);
+      color: #e6f1ff;
+      line-height: 1.7;
+    }
+
+    /* ===== 返回首页 ===== */
+    .back-link {
+      display: inline-block;
+      margin: 20px;
+      color: #7fd4ff;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .back-link:hover {
+      color: #ffffff;
+    }
+
+    /* ===== 页面布局 ===== */
+    .page-wrapper {
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .page-main {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    /* ===== 卡片样式 ===== */
+    .card {
+      background: rgba(10, 25, 45, 0.85);
+      border: 1px solid rgba(120, 200, 255, 0.25);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 0 30px rgba(80, 180, 255, 0.15);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: #9ad7ff;
+    }
+
+    .card ul,
+    .card ol {
+      padding-left: 22px;
+    }
+
+    .card li {
+      margin: 6px 0;
+    }
+
+    /* ===== 说明文字 ===== */
+    .muted {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #9bb3c8;
+    }
+
+    /* ===== 核心动画：卡片进入 ===== */
+    .animated-card {
+      opacity: 0;
+      transform: translateY(40px) scale(0.96);
+      animation: cardFadeIn 0.8s ease-out forwards;
+      animation-delay: 0.15s;
+    }
+
+    @keyframes cardFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  </style>
 </head>
+
 <body>
   <a href="index.html" class="back-link">← 返回首页</a>
 
   <div class="page-wrapper">
     <main class="page-main">
-      <div class="card">
+      <div class="card animated-card">
         <h2>项目详情 · 星旅者：星际考古实验室</h2>
+
         <p><strong>作品定位：</strong>基于 HTML5 + Three.js 的网页交互作品。</p>
+
         <p><strong>主要页面结构：</strong></p>
         <ul>
           <li><strong>index.html：</strong>项目入口与导航首页。</li>
@@ -33,7 +125,7 @@
         <p><strong>设计特点：</strong></p>
         <ul>
           <li>视觉上采用「飞船 HUD + 星空背景」的布局，强调沉浸感。</li>
-          <li>技术上使用 HTML5 canvas + Three.js 实现基础 3D 星空效果。</li>
+          <li>技术上使用 HTML5 Canvas + Three.js 实现基础 3D 星空效果。</li>
           <li>结构上采用多页面设计，符合网页设计课程的教学要求。</li>
         </ul>
 
