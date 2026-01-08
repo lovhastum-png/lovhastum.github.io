@@ -1,79 +1,272 @@
 ﻿<!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
-  <title>星旅者 · 科学小游戏</title>
+  <title>星旅者 · 科学观测站</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="css/style.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <style>
+    /* 答题页面的专属样式 */
+    .quiz-container {
+      min-height: 300px;
+    }
+
+    .option-label {
+      display: block;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .option-label:hover {
+      background: rgba(56, 189, 248, 0.1);
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+
+    /* 选中时的样式 */
+    input[type="radio"]:checked+span {
+      color: #38bdf8;
+      font-weight: bold;
+    }
+
+    /* 反馈区域 */
+    .feedback-box {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      display: none;
+      /* 默认隐藏 */
+    }
+
+    .feedback-correct {
+      background: rgba(74, 222, 128, 0.15);
+      border: 1px solid rgba(74, 222, 128, 0.4);
+      color: #4ade80;
+    }
+
+    .feedback-wrong {
+      background: rgba(248, 113, 113, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      color: #f87171;
+    }
+
+    /* 进度条 */
+    .progress-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #38bdf8;
+      width: 0%;
+      transition: width 0.3s;
+    }
+  </style>
 </head>
+
 <body>
   <a href="index.html" class="back-link">← 返回首页</a>
 
   <div class="page-wrapper">
     <main class="page-main">
-      <div class="card">
-        <h2>科学小游戏 · 光谱小测试</h2>
-        <p>
-          这里是一个非常简单的示例小游戏，用来占位，将来你可以替换为自己设计的交互。
-        </p>
-        <p>
-          假设你正在观测一颗系外行星的大气光谱，发现其中有明显的水蒸气吸收线，
-          同时出现少量氧气和二氧化碳吸收特征。
-        </p>
 
-        <p><strong>问题：你认为这颗行星的宜居可能性如何？</strong></p>
+      <div class="card quiz-container">
 
-        <form id="quizForm">
-          <label>
-            <input type="radio" name="level" value="high" />
-            较高：有水、有氧气，可能存在生命。
-          </label><br />
-          <label>
-            <input type="radio" name="level" value="medium" />
-            中等：有一定潜力，但还需要更多数据。
-          </label><br />
-          <label>
-            <input type="radio" name="level" value="low" />
-            较低：这些特征不足以说明宜居。
-          </label><br /><br />
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
 
-          <button type="submit" class="core-button">
-            提交答案
-          </button>
-        </form>
+        <div id="quizArea">
+          <h2 id="questionTitle" style="margin-bottom: 20px;">正在加载题目...</h2>
 
-        <p id="quizResult" class="muted" style="margin-top:12px;"></p>
+          <div id="optionsList">
+          </div>
 
-        <p class="muted" style="margin-top:16px;">
-          提示：你可以把这个小游戏扩展成多题、计分制，再加一个「查看报告」按钮，
-          跳转到星图或详情页面。
-        </p>
+          <div id="feedbackArea" class="feedback-box">
+            <h3 id="feedbackTitle" style="font-size:16px; margin-bottom:5px;"></h3>
+            <p id="feedbackText" style="font-size:13px; opacity:0.9;"></p>
+          </div>
+
+          <div style="margin-top: 25px;">
+            <button id="submitBtn" class="core-button">提交答案</button>
+            <button id="nextBtn" class="core-button"
+              style="display:none; background: radial-gradient(circle at top, #3b82f6, #1d4ed8);">下一题</button>
+          </div>
+        </div>
+
+        <div id="resultArea" style="display:none; text-align:center; padding: 20px 0;">
+          <h2 style="font-size:28px; margin-bottom:10px;">观测任务结束</h2>
+          <p style="color:#94a3b8; margin-bottom:30px;">你的科学素养评级为：</p>
+
+          <div style="font-size:48px; font-weight:bold; color:#38bdf8; margin-bottom:20px;" id="finalScore">0</div>
+
+          <p id="finalComment" style="margin-bottom:40px; line-height:1.6; color:#e2e8f0;"></p>
+
+          <button class="core-button" onclick="location.reload()">重新挑战</button>
+          <a href="index.html" style="margin-left:15px; color:#94a3b8; font-size:13px; text-decoration:none;">返回首页</a>
+        </div>
+
       </div>
     </main>
   </div>
 
   <script>
-    const form = document.getElementById('quizForm');
-    const result = document.getElementById('quizResult');
+    $(document).ready(function () {
+      // --- 题库配置 (你可以照着这个格式加更多题目) ---
+      const questions = [
+        {
+          q: "在我们的太阳系中，已知表面温度最高的行星是哪一颗？",
+          options: ["A. 水星 (离太阳最近)", "B. 金星 (温室效应极强)", "C. 火星 (红色星球)", "D. 木星 (气体巨星)"],
+          answer: "B", // 对应 options 的索引或者关键字，这里简单用 ABCD 判断
+          explain: "答案是金星。虽然水星离太阳最近，但金星拥有厚厚的二氧化碳大气层，产生了失控的温室效应，表面温度高达 460℃。"
+        },
+        {
+          q: "“光年”是一个什么单位？",
+          options: ["A. 时间单位", "B. 速度单位", "C. 距离单位", "D. 能量单位"],
+          answer: "C",
+          explain: "光年是长度(距离)单位，指光在真空中行走一年的距离，约等于 9.46 万亿公里。"
+        },
+        {
+          q: "黑洞的引力非常强，连光都无法逃脱。围绕黑洞周围那个“不可返回”的边界被称为什么？",
+          options: ["A. 奇点", "B. 事件视界 (Event Horizon)", "C. 吸积盘", "D. 虫洞"],
+          answer: "B",
+          explain: "事件视界(Event Horizon)是黑洞的时空界限，一旦越过这个边界，任何物质和辐射都无法逃逸。"
+        },
+        {
+          q: "如果你在太空中大喊一声，旁边的一艘飞船上的宇航员能直接听到吗？",
+          options: ["A. 能，虽然声音很小", "B. 不能，太空中没有空气", "C. 能，如果是高音的话", "D. 取决于距离远近"],
+          answer: "B",
+          explain: "声音的传播需要介质（如空气、水）。太空几乎是真空环境，没有介质来传递声波，所以听不到。"
+        },
+        {
+          q: "目前人类发射的探测器中，已经飞出日球层顶，进入星际空间的是？",
+          options: ["A. 旅行者1号 (Voyager 1)", "B. 哈勃望远镜", "C. 好奇号火星车", "D. 嫦娥五号"],
+          answer: "A",
+          explain: "旅行者1号于1977年发射，并在2012年左右成为了第一个穿越日球层顶、进入星际空间的人造物体。"
+        }
+      ];
 
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const data = new FormData(form);
-      const value = data.get('level');
+      let currentIdx = 0;
+      let score = 0;
+      const total = questions.length;
 
-      if (!value) {
-        result.textContent = '请先选择一个选项哦。';
-        return;
+      // 加载当前题目
+      function loadQuestion() {
+        const data = questions[currentIdx];
+
+        // 更新进度条
+        const pct = ((currentIdx) / total) * 100;
+        $('#progressFill').css('width', pct + '%');
+
+        // 填充题目
+        $('#questionTitle').text(`Q${currentIdx + 1}. ${data.q}`);
+
+        // 填充选项
+        const $list = $('#optionsList').empty();
+        data.options.forEach((opt, index) => {
+          // 提取选项的首字母作为值 (A, B, C, D)
+          const val = opt.charAt(0);
+          const html = `
+                    <label class="option-label">
+                        <input type="radio" name="answer" value="${val}" style="margin-right:8px;">
+                        <span>${opt}</span>
+                    </label>
+                `;
+          $list.append(html);
+        });
+
+        // 重置界面状态
+        $('#feedbackArea').hide().removeClass('feedback-correct feedback-wrong');
+        $('#submitBtn').show();
+        $('#nextBtn').hide();
+        // 允许重新选择
+        $('#optionsList input').prop('disabled', false);
       }
 
-      if (value === 'high') {
-        result.textContent = '你的判断偏乐观，适合作为科幻故事的出发点～';
-      } else if (value === 'medium') {
-        result.textContent = '你的判断比较谨慎，符合科学思维。';
-      } else {
-        result.textContent = '你的判断偏保守，可以在报告里讨论不确定性。';
+      // 提交按钮逻辑
+      $('#submitBtn').click(function () {
+        // 获取用户选择
+        const selected = $('input[name="answer"]:checked').val();
+
+        if (!selected) {
+          alert("请先选择一个答案哦！");
+          return;
+        }
+
+        const data = questions[currentIdx];
+        const isCorrect = (selected === data.answer);
+        const $feedback = $('#feedbackArea');
+
+        // 禁用所有选项，防止修改
+        $('#optionsList input').prop('disabled', true);
+
+        // 显示解析
+        if (isCorrect) {
+          score++;
+          $feedback.addClass('feedback-correct').removeClass('feedback-wrong');
+          $('#feedbackTitle').text("✅ 回答正确！");
+        } else {
+          $feedback.addClass('feedback-wrong').removeClass('feedback-correct');
+          $('#feedbackTitle').text("❌ 回答错误");
+        }
+
+        $('#feedbackText').text(data.explain);
+        $feedback.fadeIn();
+
+        // 按钮切换
+        $(this).hide();
+        $('#nextBtn').fadeIn();
+      });
+
+      // 下一题按钮逻辑
+      $('#nextBtn').click(function () {
+        currentIdx++;
+
+        if (currentIdx < total) {
+          // 还有题目，继续加载
+          loadQuestion();
+        } else {
+          // 题目做完了，显示结算
+          showResult();
+        }
+      });
+
+      // 结算逻辑
+      function showResult() {
+        $('#quizArea').hide();
+        $('#progressFill').css('width', '100%');
+        $('#resultArea').fadeIn();
+
+        const finalScoreText = `${score} / ${total}`;
+        $('#finalScore').text(finalScoreText);
+
+        // 根据分数给不同的评语
+        let comment = "";
+        if (score === total) {
+          comment = "太棒了！你是当之无愧的星际领航员，<br>对宇宙的了解令人惊叹！";
+        } else if (score >= total * 0.6) {
+          comment = "不错的成绩！你具备扎实的科学基础，<br>继续探索，星辰大海在等着你。";
+        } else {
+          comment = "虽然由于数据链路波动导致正确率不高，<br>但每一次探索都是学习的机会，加油！";
+        }
+        $('#finalComment').html(comment);
       }
+
+      // 初始化第一题
+      loadQuestion();
     });
   </script>
 </body>
+
 </html>

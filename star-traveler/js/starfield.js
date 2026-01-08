@@ -1,234 +1,248 @@
-﻿// js/starfield.js
+// js/starfield.js
+// 最终修正版：纯黑背景 + 精准锁定 + 数据跳转
 
-// ========== 1. 基本状态 ==========
+$(document).ready(function() {
+  const canvas = document.getElementById("starfield");
+  const ctx = canvas.getContext("2d");
+  const $reticle = $('#targetReticle'); // 瞄准圈
+  const $infoContent = $('#infoContent'); // 右侧报告区
+  const $systemName = $('#systemName'); // 顶部状态栏：系统名
+  const $distanceVal = $('#distanceVal'); // 顶部状态栏：距离
 
-// 当前阶段：idle | locked | scanning
-let phase = 'idle'
-let currentStar = null
+  let width, height;
+  let stars = [];
+  
+  // 用于暂存当前选中的恒星数据，以便跨页面传递
+  let currentMissionData = null; 
 
-// 恒星示例数据
-const stars = [
-  {
-    id: 1,
-    name: '太阳系 Sun',
-    distance: '0 ly',
-    description: '我们的家园，从这里开始星际考古之旅。',
-  },
-  {
-    id: 2,
-    name: 'TRAPPIST-1',
-    distance: '39 ly',
-    description: '一颗有多颗类地行星的红矮星，宜居带的热门候选。',
-  },
-  {
-    id: 3,
-    name: '比邻星 Proxima Centauri',
-    distance: '4.24 ly',
-    description: '距离太阳最近的恒星，拥有已知系外行星。',
-  },
-]
+  // --- 1. 恒星生成配置 (哈佛光谱分类) ---
+  const SPECTRAL_TYPES = [
+    { type: 'O', color: '#9bb0ff', temp: '30,000+', probability: 0.01 }, // 蓝巨星
+    { type: 'B', color: '#aabfff', temp: '10,000-30,000', probability: 0.05 },
+    { type: 'A', color: '#cad7ff', temp: '7,500-10,000', probability: 0.1 },
+    { type: 'F', color: '#f8f7ff', temp: '6,000-7,500', probability: 0.15 },
+    { type: 'G', color: '#fff4ea', temp: '5,200-6,000', probability: 0.2 }, // 类太阳
+    { type: 'K', color: '#ffd2a1', temp: '3,700-5,200', probability: 0.25 },
+    { type: 'M', color: '#ffcc6f', temp: '2,400-3,700', probability: 0.24 }  // 红矮星
+  ];
 
-// DOM 引用
-let coreButton
-let statusText
-let targetText
-let infoContent
-
-// 状态文字
-const phaseTextMap = {
-  idle: '待命 · 在星图中漫游，点击左侧画布随机锁定一颗恒星',
-  locked: '已锁定恒星 · 准备跃迁',
-  scanning: '扫描中 · 模拟科学小游戏和数据分析',
-}
-
-// 随机选恒星
-function pickRandomStar() {
-  const randomStar = stars[Math.floor(Math.random() * stars.length)]
-  currentStar = randomStar
-  phase = 'locked'
-  updateUI()
-}
-
-// 更新顶部状态条
-function updateStatusBar() {
-  statusText.textContent = phaseTextMap[phase]
-  targetText.textContent = currentStar ? currentStar.name : '未选择'
-}
-
-// 更新底部核心按钮
-function updateCoreButton() {
-  if (!currentStar || phase === 'idle') {
-    coreButton.textContent = '开始探索 · 随机锁定一颗恒星'
-    coreButton.onclick = pickRandomStar
-    return
-  }
-
-  if (phase === 'locked') {
-    coreButton.textContent = '跃迁至 ' + currentStar.name
-    coreButton.onclick = function () {
-      phase = 'scanning'
-      updateUI()
+  function getRandomSpectral() {
+    const r = Math.random();
+    let sum = 0;
+    for (let s of SPECTRAL_TYPES) {
+      sum += s.probability;
+      if (r <= sum) return s;
     }
-    return
+    return SPECTRAL_TYPES[SPECTRAL_TYPES.length - 1];
   }
 
-  // phase === 'scanning'
-  coreButton.textContent = '前往小游戏页面（开始扫描）'
-  coreButton.onclick = function () {
-    // 跳转到小游戏页面，并把恒星名带在 URL 里（可选）
-    const url = 'game.html?star=' + encodeURIComponent(currentStar.name)
-    window.location.href = url
+  // --- 2. 初始化与尺寸调整 ---
+  function resize() {
+    // 获取父容器(.space-panel)的真实尺寸，确保坐标对应准确
+    const parent = document.querySelector('.space-panel');
+    if(parent) {
+      width = parent.clientWidth;
+      height = parent.clientHeight;
+    } else {
+      width = window.innerWidth;
+      height = window.innerHeight;
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+    generateStars();
+    draw();
   }
-}
 
-// 不同状态对应的信息面板内容
-function renderIdleCard() {
-  infoContent.innerHTML = `
-    <div class="card">
-      <h2>欢迎来到星图探索</h2>
-      <p>这里展示的是一个基于 HTML5 canvas + Three.js 的简易 3D 星空。</p>
-      <ol>
-        <li>单击左侧星空画布，随机锁定一颗恒星。</li>
-        <li>查看右侧面板中的恒星信息与当前状态。</li>
-        <li>通过底部核心按钮，进入「跃迁」和「扫描 / 小游戏」阶段。</li>
-      </ol>
-      <p class="muted">
-        小提示：当前版本使用随机选星方式，后续可以改成用 Raycaster 精确点选星点。
-      </p>
-    </div>
-  `
-}
+  function generateStars() {
+    stars = [];
+    // 根据屏幕面积动态决定星星数量，避免过密或过疏
+    const starCount = Math.floor((width * height) / 450); 
 
-function renderLockedCard() {
-  infoContent.innerHTML = `
-    <div class="card">
-      <h2>已锁定恒星：${currentStar.name}</h2>
-      <p>距离地球：<strong>${currentStar.distance}</strong></p>
-      <p>${currentStar.description}</p>
-      <p class="muted">点击底部核心按钮，模拟「跃迁」到该恒星系。</p>
-    </div>
-  `
-}
-
-function renderScanningCard() {
-  infoContent.innerHTML = `
-    <div class="card">
-      <h2>正在对 ${currentStar.name} 进行深度扫描</h2>
-      <p>
-        在正式作品中，这个阶段会与科学小游戏、数据可视化结合，
-        本作业中我们把小游戏放到独立的 <strong>game.html</strong> 页面中。
-      </p>
-      <p>
-        点击底部核心按钮，会跳转到「科学小游戏」页面，完成一次简易的观测任务。
-      </p>
-      <p class="muted">
-        当前状态文字为「扫描中 · 模拟科学小游戏和数据分析」，
-        原本的乱码就是这里的中文编码不统一导致的，现在已改为 UTF-8。
-      </p>
-    </div>
-  `
-}
-
-function updateInfoContent() {
-  if (phase === 'idle') {
-    renderIdleCard()
-  } else if (phase === 'locked') {
-    renderLockedCard()
-  } else if (phase === 'scanning') {
-    renderScanningCard()
-  }
-}
-
-function updateUI() {
-  updateStatusBar()
-  updateCoreButton()
-  updateInfoContent()
-}
-
-// ========== Three.js 星空部分 ==========
-function initStarfield() {
-  const canvas = document.getElementById('starfield')
-  const scene = new THREE.Scene()
-  scene.fog = new THREE.FogExp2(0x000000, 0.001)
-
-  const camera = new THREE.PerspectiveCamera(
-    60,
-    canvas.clientWidth / canvas.clientHeight,
-    1,
-    1000
-  )
-  camera.position.z = 200
-
-  const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
-    antialias: true,
-  })
-  renderer.setPixelRatio(window.devicePixelRatio || 1)
-
-  function resizeRenderer() {
-    const width = canvas.clientWidth
-    const height = canvas.clientHeight
-    if (width === 0 || height === 0) return
-
-    if (canvas.width !== width || canvas.height !== height) {
-      renderer.setSize(width, height, false)
-      camera.aspect = width / height
-      camera.updateProjectionMatrix()
+    for (let i = 0; i < starCount; i++) {
+      const spectral = getRandomSpectral();
+      stars.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        // O型星生成得更大一些
+        size: Math.random() * 1.5 + (spectral.type === 'O' ? 1.5 : 0.5),
+        color: spectral.color,
+        spectral: spectral,
+        alpha: Math.random() * 0.8 + 0.2, // 初始透明度
+        id: Math.floor(Math.random() * 90000) + 10000 // 生成5位随机编号
+      });
     }
   }
 
-  resizeRenderer()
+  // --- 3. 绘制循环 (已修复：回归纯黑背景) ---
+  function draw() {
+    // [关键修复] 使用纯黑色填充背景，去掉之前的渐变光晕
+    ctx.fillStyle = "#000000"; 
+    ctx.fillRect(0, 0, width, height);
 
-  // 生成星点
-  const starCount = 2000
-  const positions = new Float32Array(starCount * 3)
+    // 绘制星星
+    ctx.globalCompositeOperation = 'source-over';
 
-  for (let i = 0; i < starCount * 3; i += 3) {
-    positions[i] = (Math.random() - 0.5) * 800
-    positions[i + 1] = (Math.random() - 0.5) * 800
-    positions[i + 2] = (Math.random() - 0.5) * 800
+    stars.forEach(star => {
+      // 简单的随机闪烁逻辑
+      if (Math.random() < 0.01) star.alpha = Math.random() * 0.8 + 0.2;
+      
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+      ctx.fillStyle = star.color;
+      ctx.globalAlpha = star.alpha;
+      
+      // 给星星加一点微弱的辉光
+      ctx.shadowBlur = star.size * 2; 
+      ctx.shadowColor = star.color;
+      
+      ctx.fill();
+    });
+    
+    // 重置绘图状态，避免影响下一帧
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    
+    requestAnimationFrame(draw);
   }
 
-  const geometry = new THREE.BufferGeometry()
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  // --- 4. 生成数据并更新右侧面板 ---
+  function updateSidePanel(star) {
+    // 随机生成该系统的科学数据
+    const planetCount = Math.floor(Math.random() * 8); // 0-7颗行星
+    const habits = ['极低', '低', '中等', '高', '理想'];
+    const atmospheres = ['氮气/氧气', '二氧化碳/硫酸', '氢气/氦气', '稀薄/无大气', '甲烷/氨气'];
+    
+    const habitVal = habits[Math.floor(Math.random() * habits.length)];
+    const atmVal = atmospheres[Math.floor(Math.random() * atmospheres.length)];
+    const distVal = Math.floor(Math.random() * 5000 + 4); // 距离 4-5000 光年
+    
+    // [关键] 将数据存入全局变量，准备传给 detail.html
+    currentMissionData = {
+        id: `HIP-${star.id}`,
+        type: star.spectral.type,
+        temp: star.spectral.temp,
+        dist: distVal,
+        planets: planetCount,
+        atmosphere: atmVal,
+        habitability: habitVal,
+        timestamp: new Date().toLocaleString()
+    };
 
-  const material = new THREE.PointsMaterial({
-    color: 0xffffff,
-    size: 1.2,
-    sizeAttenuation: true,
-  })
+    // 更新顶部状态栏
+    $systemName.text(currentMissionData.id);
+    $distanceVal.text(distVal);
 
-  const starsPoints = new THREE.Points(geometry, material)
-  scene.add(starsPoints)
+    // 构建右侧面板的 HTML
+    let html = `
+      <div class="card" style="border-top: 2px solid ${star.color}">
+        <h2>恒星概览</h2>
+        <p><strong>编号：</strong> ${currentMissionData.id}</p>
+        <p><strong>光谱类型：</strong> ${currentMissionData.type}型 (${currentMissionData.temp} K)</p>
+        <p class="muted">系统引力参数稳定，遥测信号良好。</p>
+      </div>
+      
+      <div class="card" style="margin-top:15px;">
+        <h2>探测报告</h2>
+        <p><strong>行星数量：</strong> ${planetCount}</p>
+    `;
 
-  function animate() {
-    requestAnimationFrame(animate)
+    if (planetCount > 0) {
+      html += `
+        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-top:10px;">
+          <h3 style="font-size:14px; color:#38bdf8; margin-bottom:5px;">重点天体分析</h3>
+          <ul style="font-size:12px; padding-left:20px; color:#ccc; line-height:1.8;">
+            <li><strong>大气成分：</strong> ${atmVal}</li>
+            <li><strong>宜居性评估：</strong> <span style="color:${habitVal==='高'||habitVal==='理想'?'#4ade80':'#f87171'}">${habitVal}</span></li>
+          </ul>
+        </div>
+      `;
+    } else {
+      html += `<p class="muted">该星系主要由小行星带组成，未发现大质量行星。</p>`;
+    }
+    
+    html += `</div>`;
+    
+    // 添加核心交互按钮
+    html += `
+       <button id="saveBtn" class="core-button" style="width:100%; margin-top:20px;">
+         下载数据并归档
+       </button>
+    `;
 
-    starsPoints.rotation.y += 0.0007
-    starsPoints.rotation.x += 0.0003
+    // 渲染到页面（先隐藏再淡入）
+    $infoContent.hide().html(html).fadeIn();
+    
+    // [关键] 绑定按钮点击事件 -> 保存数据并跳转
+    $('#saveBtn').on('click', function() {
+        if(!currentMissionData) return;
+        
+        // 1. 保存当前数据到 LocalStorage
+        localStorage.setItem('lastMissionData', JSON.stringify(currentMissionData));
+        
+        // 2. 更新历史记录列表
+        let history = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+        history.unshift(currentMissionData);
+        localStorage.setItem('missionHistory', JSON.stringify(history.slice(0, 10))); // 最多存10条
 
-    resizeRenderer()
-    renderer.render(scene, camera)
+        // 3. 跳转到详情页
+        window.location.href = 'detail.html';
+    });
   }
 
-  animate()
+  // --- 5. 点击交互逻辑 ---
+  canvas.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-  // 点击画布 = 随机锁定一颗恒星
-  canvas.addEventListener('click', function () {
-    pickRandomStar()
-  })
+    // 寻找最近的星星
+    let closest = null;
+    let minDist = 30; // 点击感应半径，稍微大一点方便点击
 
-  window.addEventListener('resize', resizeRenderer)
-}
+    stars.forEach(star => {
+      const dx = star.x - x;
+      const dy = star.y - y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < minDist) {
+        minDist = dist;
+        closest = star;
+      }
+    });
 
-// ========== 页面加载时初始化 ==========
-window.addEventListener('DOMContentLoaded', function () {
-  coreButton = document.getElementById('coreButton')
-  statusText = document.getElementById('statusText')
-  targetText = document.getElementById('targetText')
-  infoContent = document.getElementById('infoContent')
+    if (closest) {
+      // 1. 移动瞄准圈
+      // CSS中 .reticle 需要设置 transform: translate(-50%, -50%) 才能让圆心对准
+      $reticle.show().css({
+        left: closest.x + 'px', 
+        top: closest.y + 'px'
+      });
+      
+      // 2. 生成数据并更新面板
+      updateSidePanel(closest);
 
-  updateUI()
-  initStarfield()
-})
+    } else {
+      // 点击空白处隐藏瞄准圈
+      $reticle.hide();
+    }
+  });
 
+  // 底部 "随机扫描" 按钮逻辑（模拟点击）
+  $('#coreButton').click(function() {
+     if(stars.length > 0) {
+        const randomStar = stars[Math.floor(Math.random() * stars.length)];
+        
+        // 模拟选中
+        $reticle.show().css({
+            left: randomStar.x + 'px',
+            top: randomStar.y + 'px'
+        });
+        
+        updateSidePanel(randomStar);
+     }
+  });
+
+  // 启动程序
+  window.addEventListener('resize', resize);
+  resize();
+});

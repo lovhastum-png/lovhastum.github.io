@@ -1,48 +1,166 @@
 ﻿<!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
-  <title>星旅者 · 项目详情</title>
+  <title>星旅者 · 档案室</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="css/style.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    /* 打印纸风格的报告样式 */
+    .report-paper {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid #38bdf8;
+      padding: 40px;
+      max-width: 600px;
+      margin: 0 auto;
+      box-shadow: 0 0 50px rgba(56, 189, 248, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .report-paper::before {
+      content: "CLASSIFIED";
+      position: absolute;
+      top: 20px;
+      right: -30px;
+      background: #ef4444;
+      color: white;
+      padding: 5px 40px;
+      transform: rotate(45deg);
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+      padding: 12px 0;
+      font-family: monospace;
+    }
+
+    .data-label {
+      color: #94a3b8;
+    }
+
+    .data-value {
+      color: #e2e8f0;
+      font-weight: bold;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #64748b;
+      padding: 50px 0;
+    }
+  </style>
 </head>
+
 <body>
   <a href="index.html" class="back-link">← 返回首页</a>
 
   <div class="page-wrapper">
     <main class="page-main">
-      <div class="card">
-        <h2>项目详情 · 星旅者：星际考古实验室</h2>
-        <p><strong>作品定位：</strong>基于 HTML5 + Three.js 的网页交互作品。</p>
-        <p><strong>主要页面结构：</strong></p>
-        <ul>
-          <li><strong>index.html：</strong>项目入口与导航首页。</li>
-          <li><strong>starmap.html：</strong>3D 星空与恒星锁定交互。</li>
-          <li><strong>game.html：</strong>科学主题的小游戏页面。</li>
-          <li><strong>detail.html：</strong>项目说明与设计思路展示。</li>
-        </ul>
 
-        <p><strong>交互流程（简化版）：</strong></p>
-        <ol>
-          <li>用户从首页进入星图页面，在 Three.js 星空中随机锁定一颗恒星。</li>
-          <li>在右侧信息面板查看恒星简介，通过核心按钮进入「扫描 / 小游戏」阶段。</li>
-          <li>独立跳转到小游戏页面，完成一段与行星观测相关的判断或选择题。</li>
-          <li>用户可以回到首页或星图页面，继续探索其他恒星并体验不同结果。</li>
-        </ol>
+      <div id="reportContainer"></div>
 
-        <p><strong>设计特点：</strong></p>
-        <ul>
-          <li>视觉上采用「飞船 HUD + 星空背景」的布局，强调沉浸感。</li>
-          <li>技术上使用 HTML5 canvas + Three.js 实现基础 3D 星空效果。</li>
-          <li>结构上采用多页面设计，符合网页设计课程的教学要求。</li>
-        </ul>
-
-        <p class="muted">
-          说明：当前版本为课程作业级别的简化实现，重点在于从案例分析到原创结构设计的完整链路，
-          后续可以继续扩展数据可视化、AI 报告等高级功能。
-        </p>
+      <div style="max-width: 600px; margin: 30px auto;">
+        <h3 style="font-size:14px; color:#64748b; margin-bottom:10px;">最近归档的任务</h3>
+        <div id="historyList" class="card" style="min-height: 100px;">
+        </div>
       </div>
+
     </main>
   </div>
+
+  <script>
+    $(document).ready(function () {
+      // 1. 读取刚才在星图页面保存的数据
+      const rawData = localStorage.getItem('lastMissionData');
+
+      if (rawData) {
+        const data = JSON.parse(rawData);
+
+        // 2. 动态生成 HTML 报告
+        const reportHtml = `
+                <div class="report-paper">
+                    <h1 style="text-align:center; font-size:24px; margin-bottom:10px;">星际探测任务报告</h1>
+                    <p style="text-align:center; color:#38bdf8; font-size:12px; margin-bottom:30px;">
+                        DEEP SPACE ARCHIVE LAB // LOG ID: ${Math.floor(Math.random() * 999999)}
+                    </p>
+
+                    <div class="data-row">
+                        <span class="data-label">目标编号</span>
+                        <span class="data-value">${data.id}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">归档时间</span>
+                        <span class="data-value">${data.timestamp}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">光谱类型</span>
+                        <span class="data-value">${data.type} 型</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">距离地球</span>
+                        <span class="data-value">${data.dist} 光年</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">行星数量</span>
+                        <span class="data-value">${data.planets}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">大气成分</span>
+                        <span class="data-value">${data.atmosphere}</span>
+                    </div>
+                    <div class="data-row" style="border-bottom:none;">
+                        <span class="data-label">宜居性评估</span>
+                        <span class="data-value" style="color:${data.habitability === '高' || data.habitability === '理想' ? '#4ade80' : '#f87171'}">
+                            ${data.habitability}
+                        </span>
+                    </div>
+
+                    <div style="margin-top:30px; padding:15px; background:rgba(255,255,255,0.05); font-size:12px; line-height:1.6; color:#cbd5e1;">
+                        <strong>舰长备注：</strong><br>
+                        数据已成功同步至中央数据库。该星系${data.planets > 0 ? '具备一定的探索价值，建议派遣无人探测器进行二次扫描。' : '缺乏资源，建议跳过并在星图中标记为荒芜区域。'}
+                    </div>
+                </div>
+                
+                <div style="text-align:center; margin-top:20px;">
+                    <button class="core-button" onclick="window.location.href='starmap.html'">发起新任务</button>
+                </div>
+            `;
+        $('#reportContainer').hide().html(reportHtml).fadeIn(800);
+
+      } else {
+        // 如果没有数据（直接打开此页面）
+        $('#reportContainer').html(`
+                <div class="card empty-state">
+                    <h2>暂无任务数据</h2>
+                    <p>请前往星图页面进行探测并下载数据。</p>
+                    <br>
+                    <button class="core-button" onclick="window.location.href='starmap.html'">前往星图</button>
+                </div>
+            `);
+      }
+
+      // 3. (可选) 显示简略的历史列表
+      const historyRaw = localStorage.getItem('missionHistory');
+      if (historyRaw) {
+        const list = JSON.parse(historyRaw);
+        let listHtml = '<ul style="padding-left:20px; font-size:13px; color:#94a3b8;">';
+        list.forEach(item => {
+          listHtml += `<li style="margin-bottom:5px;">[${item.timestamp.split(' ')[0]}] 探测了 <strong>${item.id}</strong> (宜居性: ${item.habitability})</li>`;
+        });
+        listHtml += '</ul>';
+        $('#historyList').html(listHtml);
+      } else {
+        $('#historyList').html('<p style="font-size:12px; color:#475569; padding:10px;">暂无历史记录</p>');
+      }
+    });
+  </script>
 </body>
+
 </html>

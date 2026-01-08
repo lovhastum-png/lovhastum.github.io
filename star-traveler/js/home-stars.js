@@ -1,5 +1,5 @@
-﻿// js/home-stars.js  文件编码：UTF-8
-// 作用：在首页银河背景上叠加一层静止但闪烁的星星
+﻿// js/home-stars.js
+// 修复版：强制全屏分布
 
 window.addEventListener('DOMContentLoaded', function () {
   const canvas = document.getElementById('home-stars')
@@ -11,34 +11,35 @@ window.addEventListener('DOMContentLoaded', function () {
   let height = 0
   let stars = []
 
-  // 首页用的是背景图，这里只做强化亮星的闪烁，不需要太密
   const STAR_COUNT = 320
 
   function resize() {
     const dpr = window.devicePixelRatio || 1
-    width = canvas.clientWidth || window.innerWidth
-    height = canvas.clientHeight || window.innerHeight
+    
+    // 【关键修改】直接读取窗口(window)的宽高，确保铺满全屏
+    // 之前读取 canvas.clientWidth 可能会因为加载延迟导致读到默认的 300px
+    width = window.innerWidth
+    height = window.innerHeight
 
     canvas.width = width * dpr
     canvas.height = height * dpr
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   }
 
+  // 初始化时立即调整大小
+  resize()
+
+  // 监听窗口大小变化（比如拖动浏览器窗口时）
   window.addEventListener('resize', function () {
     resize()
-    createStars()
+    createStars() // 重新生成星星位置
   })
-
-  resize()
 
   function createStars() {
     stars = []
-
-    // 普通星 + 少量亮星
     const normalCount = Math.floor(STAR_COUNT * 0.75)
     const brightCount = STAR_COUNT - normalCount
 
-    // 普通星：分布更广，闪烁明显
     for (let i = 0; i < normalCount; i++) {
       stars.push(createStar({
         radiusMin: 0.7,
@@ -51,9 +52,9 @@ window.addEventListener('DOMContentLoaded', function () {
       }))
     }
 
-    // 亮星：数量少、对比强，偏银河带区域
     for (let i = 0; i < brightCount; i++) {
-      const biasY = 0.35 + Math.random() * 0.3 // 大致在画面中间偏下的银河带上方
+      // 让亮星主要分布在屏幕中间偏下的位置（模拟银河）
+      const biasY = 0.35 + Math.random() * 0.4 
       stars.push(createStar({
         radiusMin: 1.6,
         radiusMax: 2.6,
@@ -76,9 +77,12 @@ window.addEventListener('DOMContentLoaded', function () {
       biasY,
     } = opts
 
+    // 生成全屏随机坐标
     const x = Math.random() * width
+    
+    // 如果有 biasY 则偏向银河区域，否则全屏随机
     const y = biasY
-      ? biasY * height + (Math.random() - 0.5) * height * 0.15
+      ? biasY * height + (Math.random() - 0.5) * height * 0.25
       : Math.random() * height
 
     const radius = radiusMin + Math.random() * (radiusMax - radiusMin)
@@ -100,28 +104,20 @@ window.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // 偏冷的蓝白色为主，少量黄 / 淡红，接近你那张银河图的色调
   function pickStarColor(isBright) {
     const r = Math.random()
-
     if (isBright) {
-      if (r < 0.6) return { r: 245, g: 248, b: 255 } // 亮冷白
-      if (r < 0.9) return { r: 215, g: 225, b: 255 } // 亮淡蓝
-      return { r: 255, g: 235, b: 210 }              // 少量暖黄
+      if (r < 0.6) return { r: 245, g: 248, b: 255 } 
+      if (r < 0.9) return { r: 215, g: 225, b: 255 } 
+      return { r: 255, g: 235, b: 210 }              
     }
-
-    if (r < 0.55) {
-      return { r: 230, g: 235, b: 255 } // 冷白
-    }
-    if (r < 0.82) {
-      return { r: 205, g: 215, b: 245 } // 淡蓝
-    }
-    if (r < 0.95) {
-      return { r: 255, g: 235, b: 205 } // 暖黄
-    }
-    return { r: 255, g: 210, b: 210 }   // 少量略红
+    if (r < 0.55) return { r: 230, g: 235, b: 255 } 
+    if (r < 0.82) return { r: 205, g: 215, b: 245 } 
+    if (r < 0.95) return { r: 255, g: 235, b: 205 } 
+    return { r: 255, g: 210, b: 210 }   
   }
 
+  // 先创建一次星星
   createStars()
 
   let lastTime = 0
@@ -131,17 +127,12 @@ window.addEventListener('DOMContentLoaded', function () {
     const dt = lastTime ? (t - lastTime) : 0
     lastTime = t
 
-    // 不填充背景，只清理，保持透明，让下面的银河图透出来
     ctx.globalCompositeOperation = 'source-over'
     ctx.clearRect(0, 0, width, height)
-
-    // 使用 lighter 模式，让星星发光效果更自然
     ctx.globalCompositeOperation = 'lighter'
 
     for (const star of stars) {
       star.phase += star.twinkleSpeed * dt
-
-      // 闪烁：同一颗星从“更暗”到“更亮”，差分比较大
       let alpha = star.baseAlpha + Math.sin(star.phase) * star.twinkleAmp
       if (alpha < 0) alpha = 0
       if (alpha > 1) alpha = 1
@@ -163,28 +154,17 @@ window.addEventListener('DOMContentLoaded', function () {
       ctx.arc(star.x, star.y, r * 2.0, 0, Math.PI * 2)
       ctx.fill()
 
-      // 最亮的一些星加一点淡淡的十字光芒
       if (star.isBright && r > 2.0) {
         ctx.globalAlpha = alpha * 0.6
         ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, 0.9)`
         ctx.lineWidth = 0.5
-
         const len = r * 3.2
-
         ctx.beginPath()
-        ctx.moveTo(star.x - len, star.y)
-        ctx.lineTo(star.x + len, star.y)
-        ctx.stroke()
-
+        ctx.moveTo(star.x - len, star.y); ctx.lineTo(star.x + len, star.y); ctx.stroke()
         ctx.beginPath()
-        ctx.moveTo(star.x, star.y - len)
-        ctx.lineTo(star.x, star.y + len)
-        ctx.stroke()
+        ctx.moveTo(star.x, star.y - len); ctx.lineTo(star.x, star.y + len); ctx.stroke()
       }
     }
-
-    ctx.globalAlpha = 1
-    ctx.globalCompositeOperation = 'source-over'
     requestAnimationFrame(animate)
   }
 
