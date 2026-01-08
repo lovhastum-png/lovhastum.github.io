@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>星旅者 · 星际考古实验室</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/anim.css" />
+
+  <style>
+    /* 【修改点1】强制修正标题位置为正中心 */
+    body.home .home-header {
+      position: absolute;
+      top: 35% !important;
+      /* 垂直居中 */
+      left: 50% !important;
+      /* 水平居中 */
+      transform: translate(-50%, -50%) !important;
+      margin: 0;
+      z-index: 20;
+      /* 初始透明，交给 jQuery 控制显示，防止 CSS 动画失效导致空白 */
+      opacity: 0;
+    }
+
+    /* 调整下方导航栏的位置，避免挡住标题 */
+    body.home .home-main {
+      top: 85vh !important;
+      /* 下移到底部 */
+    }
+  </style>
+</head>
+
+<body class="home">
+  <div class="home-bg"></div>
+  <canvas id="home-stars" class="home-stars-layer"></canvas>
+
+  <div class="home-layout">
+    <header class="home-header">
+      <div id="mainLogo" class="home-logo">星旅者</div>
+      <div class="home-subtitle">STAR TRAVELER · DEEP SPACE ARCHIVE LAB</div>
+    </header>
+
+    <main class="home-main">
+      <nav class="nav-row">
+        <a href="starmap.html" class="nav-pill">
+          <h2>星图探索</h2>
+          <p>锁定恒星，开启旅程</p>
+        </a>
+        <a href="game.html" class="nav-pill">
+          <h2>观测实验</h2>
+          <p>深空数据判读</p>
+        </a>
+        <a href="detail.html" class="nav-pill">
+          <h2>档案馆</h2>
+          <p>回顾任务记录</p>
+        </a>
+      </nav>
+    </main>
+  </div>
+
+  <script src="js/home-stars.js"></script>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      // 1. 入场动画：标题淡入并向下滑动
+      $('.home-header').css({
+        opacity: 0,
+        marginTop: '-30px'
+      }).animate({
+        opacity: 1,
+        marginTop: '0px'
+      }, 1500);
+
+      // 2. 导航栏延迟淡入
+      $('.nav-pill').css('opacity', 0).delay(800).animate({ opacity: 1 }, 1000);
+
+      // 3. 交互动画：鼠标悬停/点击 Logo 时的特效
+      $('#mainLogo').css('cursor', 'pointer').hover(function () {
+        $(this).stop().animate({ paddingLeft: '45px', paddingRight: '45px' }, 200);
+      }, function () {
+        $(this).stop().animate({ paddingLeft: '34px', paddingRight: '34px' }, 200);
+      }).click(function () {
+        // 点击时的弹跳效果
+        $(this).animate({ top: '-10px' }, 100).animate({ top: '0px' }, 100);
+      });
+    });
+  </script>
+</body>
+
+</html>

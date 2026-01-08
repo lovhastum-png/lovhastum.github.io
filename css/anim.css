@@ -1,0 +1,23 @@
+:root{--enter-dur:850ms;--enter-ease:cubic-bezier(0.22,1,0.36,1)}
+@keyframes riseFade{from{opacity:0;transform:translateY(14px);filter:blur(2px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+body.home .home-header{display:flex;flex-direction:column;align-items:center;text-align:center;opacity:0;animation:riseFade var(--enter-dur) var(--enter-ease) 80ms both}
+body.home .nav-row .nav-pill{opacity:0;animation:riseFade var(--enter-dur) var(--enter-ease) 220ms both}
+
+.starmap .space-panel{position:relative}
+.starmap .back-link{position:fixed;top:16px;left:16px;z-index:80;padding:10px 12px;border-radius:999px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:rgba(255,255,255,0.92);text-decoration:none}
+.starmap .hud-title{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:40;text-align:center;pointer-events:none;max-width:min(520px,92%)}
+.starmap .hud-title h1{margin:0;font-size:clamp(18px,2.2vw,26px)}
+.starmap .hud-title p{margin:8px 0 0;opacity:.85}
+
+.starmap .hud-title,.starmap .core-button-wrapper,.starmap .info-panel{opacity:0;animation:riseFade var(--enter-dur) var(--enter-ease) 100ms both}
+
+.info-content .kv{display:grid;grid-template-columns:120px 1fr;gap:10px 14px;margin-top:14px}
+.info-content .kv div{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,0.06)}
+.info-content .kv b{font-weight:700;opacity:.95}
+.info-content .progress{margin-top:14px;height:10px;border-radius:999px;background:rgba(255,255,255,0.10);overflow:hidden}
+.info-content .progress>i{display:block;height:100%;width:0;border-radius:999px;background:rgba(255,255,255,0.55)}
+.info-content .log{margin-top:16px;padding:12px 12px;border-radius:14px;background:rgba(255,255,255,0.06)}
+.info-content .log h3{margin:0 0 10px;font-size:14px;opacity:.92}
+.info-content .log ul{margin:0;padding-left:18px;opacity:.88}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
