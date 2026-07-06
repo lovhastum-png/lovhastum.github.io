@@ -1,0 +1,3043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>肖清雅的应援小站 · 治愈陪伴</title>
+<style>
+/* ============================================================
+ *  情绪急救站 v3.1 —— 全局样式（含AI对话模块）
+ * ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --grad-start: #f0d4ff;
+  --grad-mid: #e0d0ff;
+  --grad-end: #c8e0ff;
+  --glass-bg: rgba(255, 255, 255, 0.28);
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-shadow: rgba(140, 110, 170, 0.12);
+  --text-primary: #4a3f5e;
+  --text-secondary: #7a6f8e;
+  --text-light: #aaa0be;
+  --accent-pink: #ffb5c0;
+  --accent-yellow: #ffe082;
+  --accent-purple: #b39ddb;
+  --accent-blue: #90caf9;
+}
+
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none; user-select: none;
+}
+
+/* ========== 全局容器与背景特效 ========== */
+.app-container {
+  width: 100%; height: 100vh; height: 100dvh;
+  position: relative; overflow: hidden;
+  background: #e8e0f0;
+  background-image: url("bizhi.png");
+  background-size: cover; background-position: center; background-attachment: fixed;
+}
+
+/* 壁纸遮罩 — 极淡，仅保证文字可读性 */
+.bg-image-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+  background: linear-gradient(160deg, rgba(245,238,250,.25) 0%, rgba(225,220,245,.2) 40%, rgba(235,225,240,.22) 100%);
+}
+
+/* 装饰光斑 — 仅3颗，小尺寸，低模糊，通透不糊 */
+.bg-orbs {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0; overflow: hidden;
+}
+.bg-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(40px); will-change: transform;
+  animation: orbDrift var(--drift) ease-in-out infinite alternate;
+}
+.bg-orb:nth-child(1) { width: 200px; height: 200px; background: rgba(200,170,240,0.25); top: -8%; left: -5%; --drift: 10s; }
+.bg-orb:nth-child(2) { width: 150px; height: 150px; background: rgba(180,210,250,0.22); top: 50%; right: -4%; --drift: 12s; }
+.bg-orb:nth-child(3) { width: 160px; height: 160px; background: rgba(250,200,220,0.20); bottom: -5%; left: 35%; --drift: 9s; }
+@keyframes orbDrift {
+  0% { transform: translate(0,0); }
+  100% { transform: translate(30px,-20px); }
+}
+
+/* 上升粒子 — 小而通透 */
+.bg-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.bg-particle {
+  position: absolute; border-radius: 50%;
+  animation: particleRise var(--rise) linear infinite; opacity: 0;
+}
+@keyframes particleRise {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  10% { opacity: var(--maxOpac); }
+  85% { opacity: var(--maxOpac); }
+  100% { transform: translateY(-100vh) translateX(var(--driftX)) scale(0.2); opacity: 0; }
+}
+
+/* 闪烁星光 — 小点缀 */
+.bg-sparkles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.bg-sparkle {
+  position: absolute; width: 2px; height: 2px; background: #fff;
+  border-radius: 50%; opacity: 0;
+  animation: sparklePulse var(--spkDur) ease-in-out infinite;
+  animation-delay: var(--spkDelay);
+  box-shadow: 0 0 4px 1px rgba(255,255,255,0.5);
+}
+@keyframes sparklePulse {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  30% { opacity: 0.7; transform: scale(1.3); }
+  60% { opacity: 0.15; transform: scale(0.8); }
+}
+
+/* ========== 页面系统 ========== */
+.page {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease, transform 0.5s ease;
+  transform: translateY(16px); will-change: opacity, transform, visibility;
+  padding: 20px; z-index: 2;
+}
+.page.active { opacity: 1; visibility: visible; transform: translateY(0); }
+.page.fade-out { opacity: 0; transform: translateY(-16px); visibility: hidden; }
+
+/* ============================================================
+ *  页面1：情绪选择主页
+ * ============================================================ */
+#page-home { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 48px; }
+.home-title {
+  font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 4px; letter-spacing: 1.5px;
+  background: linear-gradient(135deg, #8e6bb0, #5b8ec9, #7eb8da);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.home-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; text-align: center; letter-spacing: 1px; }
+.emotion-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 420px; width: 100%; padding: 0 8px; }
+
+.emotion-card {
+  width: calc(50% - 14px); max-width: 170px; min-width: 120px;
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 22px;
+  padding: 20px 12px 16px; cursor: pointer; text-align: center;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s ease, background 0.35s ease;
+  box-shadow: 0 4px 20px rgba(140,110,170,0.1);
+  will-change: transform; touch-action: manipulation; position: relative; overflow: hidden;
+  opacity: 0; transform: translateY(30px) scale(0.9);
+}
+.emotion-card.show { opacity: 1; transform: translateY(0) scale(1); }
+.emotion-card:nth-child(1) { transition-delay: .05s; }
+.emotion-card:nth-child(2) { transition-delay: .12s; }
+.emotion-card:nth-child(3) { transition-delay: .19s; }
+.emotion-card:nth-child(4) { transition-delay: .26s; }
+.emotion-card:nth-child(5) { transition-delay: .33s; }
+.emotion-card:nth-child(6) { transition-delay: .40s; }
+.emotion-card:nth-child(7) { transition-delay: .47s; }
+
+.emotion-card::after {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: var(--card-glow, radial-gradient(circle, rgba(200,170,240,0.15), transparent 70%));
+  opacity: 0; transition: opacity 0.4s; pointer-events: none;
+}
+.emotion-kaixin  { --card-glow: radial-gradient(circle at 40% 30%, rgba(255,210,130,0.25), transparent 60%); }
+.emotion-jiaolv  { --card-glow: radial-gradient(circle at 40% 30%, rgba(200,170,240,0.25), transparent 60%); }
+.emotion-pibei   { --card-glow: radial-gradient(circle at 40% 30%, rgba(170,200,230,0.25), transparent 60%); }
+.emotion-nanguo  { --card-glow: radial-gradient(circle at 40% 30%, rgba(160,190,230,0.25), transparent 60%); }
+.emotion-gudu    { --card-glow: radial-gradient(circle at 40% 30%, rgba(200,180,220,0.25), transparent 60%); }
+.emotion-fennu   { --card-glow: radial-gradient(circle at 40% 30%, rgba(240,150,150,0.25), transparent 60%); }
+.emotion-pingjing{ --card-glow: radial-gradient(circle at 40% 30%, rgba(180,200,210,0.25), transparent 60%); }
+
+.emotion-card:active { transform: scale(0.91); background: rgba(255,255,255,0.55); }
+.emotion-card:active::after { opacity: 1; }
+.emotion-card .card-label { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-top: 6px; }
+
+@media (hover: hover) {
+  .emotion-card:hover { transform: translateY(-6px) scale(1.05); box-shadow: 0 10px 32px rgba(160,120,190,0.3); }
+  .emotion-card:hover::after { opacity: 1; }
+}
+
+/* CSS表情 */
+.face-container { width: 66px; height: 66px; margin: 0 auto 4px; position: relative; }
+.face-circle { width: 100%; height: 100%; border-radius: 50%; background: #fff8e7; position: relative; overflow: visible; box-shadow: inset 0 -2px 8px rgba(0,0,0,0.05), 0 2px 8px rgba(200,160,220,0.15); }
+.face-blush { position: absolute; width: 14px; height: 8px; border-radius: 50%; background: rgba(255,180,170,0.45); top: 28px; }
+.face-blush.left { left: 6px; } .face-blush.right { right: 6px; }
+.face-eye { width: 9px; height: 11px; border-radius: 50%; background: #5a4a3a; position: absolute; top: 19px; }
+.face-eye.left { left: 14px; } .face-eye.right { right: 14px; }
+.face-mouth { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 28px; height: 14px; border-radius: 50%; }
+
+.emotion-kaixin .face-mouth { width: 30px; height: 16px; border-bottom: 3px solid #e88a8a; border-radius: 0 0 20px 20px; bottom: 11px; }
+.emotion-kaixin .face-eye { height: 10px; border-radius: 0 0 50% 50%; top: 18px; }
+.emotion-kaixin .face-blush { background: rgba(255,150,140,0.5); }
+.emotion-jiaolv .face-mouth { width: 24px; height: 6px; border-bottom: 2.5px dashed #b088b0; bottom: 14px; border-radius: 0; }
+.emotion-jiaolv .face-eye { width: 10px; height: 10px; background: transparent; border: 2.5px solid #5a4a3a; top: 17px; }
+.emotion-jiaolv { animation: jitter 1.6s ease-in-out infinite; }
+.emotion-pibei .face-mouth { width: 20px; height: 3px; border-bottom: 2px solid #9a8a7a; bottom: 15px; border-radius: 0; }
+.emotion-pibei .face-eye { width: 16px; height: 2px; border-radius: 2px; background: #5a4a3a; top: 23px; }
+.emotion-pibei .face-blush { display: none; }
+.emotion-nanguo .face-mouth { width: 26px; height: 14px; border-top: 3px solid #7a8aaa; border-radius: 20px 20px 0 0; bottom: 13px; }
+.emotion-nanguo .face-eye { top: 17px; }
+.emotion-nanguo .face-circle::after { content: ''; position: absolute; width: 5px; height: 7px; background: #90caf9; border-radius: 50%; left: 21px; top: 31px; animation: tearDrop 2s ease-in-out infinite; }
+.emotion-gudu .face-mouth { width: 18px; height: 3px; border-bottom: 2px solid #9a8a7a; bottom: 15px; border-radius: 0; }
+.emotion-gudu .face-eye { top: 19px; width: 7px; height: 7px; }
+.emotion-gudu .face-blush { display: none; }
+.emotion-fennu .face-mouth { width: 22px; height: 8px; border: 2px solid #d06060; border-radius: 4px; background: transparent; bottom: 13px; }
+.emotion-fennu .face-eye { top: 17px; width: 10px; height: 9px; }
+.emotion-fennu .face-circle::before, .emotion-fennu .face-circle::after { content: ''; position: absolute; width: 18px; height: 2.5px; background: #c06060; top: 13px; border-radius: 2px; }
+.emotion-fennu .face-circle::before { left: 7px; transform: rotate(-16deg); }
+.emotion-fennu .face-circle::after { right: 7px; transform: rotate(16deg); }
+.emotion-pingjing .face-mouth { width: 22px; height: 4px; border-bottom: 2.5px solid #b0a0b8; bottom: 15px; border-radius: 0; }
+.emotion-pingjing .face-eye { top: 19px; width: 8px; height: 8px; background: #7a6a7a; }
+
+/* ========== 关键帧动画 ========== */
+@keyframes jitter { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-2.5px) rotate(-.6deg)} 50%{transform:translateX(1.5px) rotate(.4deg)} 75%{transform:translateX(-2px) rotate(-.4deg)} }
+@keyframes tearDrop { 0%,100%{transform:translateY(0);opacity:.8} 50%{transform:translateY(7px);opacity:.2} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes fadeInUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+@keyframes labelTear { 0%{transform:scale(1) rotate(0);opacity:1;clip-path:inset(0)} 25%{transform:scale(1.15) rotate(6deg);opacity:.9;clip-path:inset(0 15% 0 0)} 55%{transform:scale(.7) rotate(-12deg);opacity:.35;clip-path:inset(0 50% 0 0)} 100%{transform:scale(0) rotate(-25deg);opacity:0;clip-path:inset(0 100% 0 0)} }
+@keyframes shakeTrash { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-10deg)} 40%{transform:rotate(10deg)} 60%{transform:rotate(-6deg)} 80%{transform:rotate(6deg)} }
+@keyframes flashScreen { 0%{background-color:rgba(255,255,210,.35)} 100%{background-color:transparent} }
+@keyframes jarGlowFull { 0%,100%{box-shadow:0 0 20px rgba(255,215,0,.35),0 0 60px rgba(255,200,100,.2)} 50%{box-shadow:0 0 45px rgba(255,215,0,.7),0 0 90px rgba(255,200,100,.35)} }
+@keyframes starSettle { 0%{transform:scale(0) rotate(0);opacity:0} 50%{transform:scale(1.4) rotate(180deg);opacity:1} 100%{transform:scale(1) rotate(360deg);opacity:.95} }
+@keyframes starFallToJar { 0%{transform:translate(0,0) scale(1.3) rotate(0);opacity:1} 60%{opacity:1} 100%{transform:translate(var(--tx),var(--ty)) scale(.2) rotate(900deg);opacity:0} }
+@keyframes countPulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.25)} }
+@keyframes ringExpand { 0%{transform:translate(-50%,-50%) scale(.5);opacity:.6} 100%{transform:translate(-50%,-50%) scale(2.2);opacity:0} }
+@keyframes exhaleBubble { 0%{transform:translate(0,0) scale(.6);opacity:.7} 100%{transform:translate(var(--ex),var(--ey)) scale(1.4);opacity:0} }
+@keyframes confettiBurst { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(var(--cx),var(--cy)) scale(0);opacity:0} }
+@keyframes noteStaggerIn { from{opacity:0;transform:translateY(20px) rotate(var(--rot,0deg)) scale(.9)} to{opacity:1;transform:translateY(0) rotate(var(--rot,0deg)) scale(1)} }
+@keyframes starTwinkle { 0%,100%{opacity:.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+@keyframes typingBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes popIn { 0%{transform:scale(0);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+@keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes thinkingBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-8px)} }
+
+/* ========== 底部引导 ========== */
+.home-footer { margin-top: 28px; font-size: 13px; color: var(--text-light); text-align: center; letter-spacing: 2px; animation: float 3s ease-in-out infinite; }
+.home-exit-btn { margin-top: 16px; font-size: 12px; color: var(--text-light); text-align: center; cursor: pointer; letter-spacing: 1px; opacity: .6; transition: opacity .2s; }
+.home-exit-btn:hover { opacity: 1; }
+
+/* ============================================================
+ *  页面2：治愈空间
+ * ============================================================ */
+#page-heal { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+.scenario { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 420px; min-height: 70vh; animation: fadeInUp 0.6s ease; }
+.scenario.active { display: flex; }
+.scenario .heal-title { font-size: 22px; font-weight: 700; color: var(--text-primary); text-align: center; margin-bottom: 6px; }
+.scenario .heal-guide { font-size: 15px; color: var(--text-secondary); text-align: center; margin-bottom: 20px; line-height: 1.7; }
+
+/* 场景A：呼吸气泡 */
+#scenario-bubble .bubble-area { width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; margin: 10px auto 16px; touch-action: none; position: relative; }
+.pulse-ring { position: absolute; top: 50%; left: 50%; width: 140px; height: 140px; border-radius: 50%; border: 2px solid rgba(180,160,220,0.3); pointer-events: none; transform: translate(-50%,-50%); }
+.pulse-ring.pulsing { animation: ringExpand 1.6s ease-out infinite; }
+.pulse-ring.pulsing:nth-child(2) { animation-delay: .5s; }
+.pulse-ring.pulsing:nth-child(3) { animation-delay: 1s; }
+#scenario-bubble .bubble {
+  width: 140px; height: 140px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.85), rgba(180,200,255,.5), rgba(210,170,255,.35));
+  box-shadow: 0 0 45px rgba(200,180,255,.45), inset 0 -10px 35px rgba(255,255,255,.35);
+  cursor: pointer; transition: transform .08s; touch-action: none; will-change: transform; position: relative; z-index: 2;
+}
+.bubble.highlight { box-shadow: 0 0 70px rgba(200,180,255,.75), 0 0 120px rgba(200,180,255,.35), inset 0 -10px 35px rgba(255,255,255,.35); }
+.bubble .bubble-shine { position: absolute; top: 16px; left: 22px; width: 34px; height: 16px; background: rgba(255,255,255,.65); border-radius: 50%; transform: rotate(-30deg); }
+.bubble .bubble-shine2 { position: absolute; bottom: 28px; right: 22px; width: 18px; height: 8px; background: rgba(255,255,255,.4); border-radius: 50%; transform: rotate(20deg); }
+.bubble-countdown { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 40px; font-weight: 800; color: rgba(120,95,160,.75); text-shadow: 0 0 25px rgba(200,180,255,.6); pointer-events: none; opacity: 0; transition: opacity .25s; z-index: 3; }
+.bubble-countdown.show { opacity: 1; animation: countPulse 1s ease-in-out infinite; }
+.breath-phase-text { font-size: 16px; color: var(--text-secondary); min-height: 24px; margin: 8px 0; text-align: center; }
+
+/* 场景B：撕标签 */
+#scenario-labels { position: relative; }
+#scenario-labels .labels-area { width: 100%; min-height: 55vh; position: relative; margin-bottom: 10px; touch-action: none; }
+.label-tag {
+  position: absolute; padding: 12px 18px;
+  border: 1px solid rgba(255,255,255,.6); border-radius: 14px; font-size: 14px; font-weight: 500;
+  cursor: grab; z-index: 5; will-change: transform; user-select: none; transition: box-shadow .25s, transform .15s;
+}
+.label-tag.dragging { cursor: grabbing; z-index: 15; box-shadow: 0 8px 30px rgba(160,120,190,.35); transform: scale(1.06); }
+.label-tag.tearing { animation: labelTear .5s ease forwards; pointer-events: none; }
+
+.trash-zone {
+  width: 88px; height: 88px; border-radius: 50%; background: rgba(255,255,255,.22);
+  border: 2.5px dashed rgba(200,160,220,.5); display: flex; align-items: center; justify-content: center;
+  font-size: 38px; transition: transform .3s, border-color .3s, background .3s; margin: 0 auto; position: relative;
+}
+.trash-zone.active { border-color: var(--accent-pink); border-style: solid; background: rgba(255,181,192,.3); animation: shakeTrash .5s ease; }
+.trash-zone .trash-lid {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%) rotate(0deg);
+  width: 44px; height: 10px; background: linear-gradient(90deg, #d4c8e0, #e8d8f0);
+  border-radius: 5px; transition: transform .3s ease; transform-origin: right center;
+}
+.trash-zone.active .trash-lid { transform: translateX(-50%) rotate(-25deg); }
+.trash-zone .trash-count {
+  position: absolute; bottom: -6px; right: -6px; background: var(--accent-purple); color: #fff;
+  font-size: 12px; font-weight: 700; width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,.5);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.trash-zone .trash-count.bounce { transform: scale(1.5); }
+
+/* 场景C：能量罐 */
+#scenario-jar { touch-action: none; }
+.jar-container { position: relative; width: 160px; height: 210px; margin: 10px auto; touch-action: none; }
+.jar-lid { width: 94px; height: 12px; margin: 0 auto; background: linear-gradient(90deg, #d0c0e0, #e0d0ec, #d4c4e0); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1); position: relative; }
+.jar-lid::after { content: ''; position: absolute; top: 3px; left: 50%; transform: translateX(-50%); width: 40px; height: 4px; background: rgba(255,255,255,.5); border-radius: 2px; }
+.jar-neck { width: 84px; height: 18px; margin: 0 auto; border: 3px solid rgba(200,220,255,.6); border-bottom: none; border-radius: 10px 10px 0 0; background: rgba(200,220,255,.08); }
+.jar-body { width: 140px; height: 175px; margin: 0 auto; position: relative; border: 3px solid rgba(200,220,255,.55); border-top: none; border-radius: 0 0 34px 34px; background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(200,220,255,.08)); overflow: hidden; }
+.jar-body::before { content: ''; position: absolute; left: 12px; top: 10px; width: 20px; height: 80px; background: rgba(255,255,255,.25); border-radius: 50%; transform: rotate(8deg); pointer-events: none; }
+.jar-glow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 0 0 34px 34px; pointer-events: none; transition: box-shadow .5s; }
+.jar-glow.full { animation: jarGlowFull 1.5s ease-in-out infinite; }
+.jar-stars-container { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 110px; height: 120px; }
+.jar-star-icon { position: absolute; font-size: 17px; pointer-events: none; animation: starSettle .8s ease-out forwards, starTwinkle 2s ease-in-out infinite; }
+.jar-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(0deg, rgba(255,215,0,.2), transparent); pointer-events: none; transition: height .6s ease; border-radius: 0 0 30px 30px; }
+.falling-star { position: fixed; pointer-events: none; font-size: 26px; z-index: 50; animation: starFallToJar 1.1s cubic-bezier(.22,.05,.36,1) forwards; filter: drop-shadow(0 0 8px rgba(255,215,0,.6)); }
+.jar-progress-text { font-size: 14px; color: var(--text-secondary); text-align: center; margin-top: 6px; font-weight: 500; }
+
+/* 鼓励语句 & 按钮 */
+.heal-encouragement {
+  margin: 18px 0 10px; padding: 20px 24px; background: rgba(255,255,255,.5);
+  border: 1px solid rgba(255,255,255,.5); border-radius: 20px; font-size: 17px; color: var(--text-primary);
+  text-align: center; line-height: 1.7; max-width: 360px; display: none;
+  animation: fadeInUp .6s ease; box-shadow: 0 6px 24px rgba(160,120,190,.18);
+}
+.heal-encouragement.show { display: block; }
+.btn-next-wall {
+  display: none; margin-top: 10px; padding: 14px 38px;
+  background: linear-gradient(135deg, var(--accent-purple), #7ea8d8); color: #fff;
+  border: none; border-radius: 26px; font-size: 17px; font-weight: 600; cursor: pointer;
+  transition: transform .3s, box-shadow .3s; box-shadow: 0 4px 20px rgba(150,130,190,.45);
+  touch-action: manipulation; letter-spacing: 1.5px;
+}
+.btn-next-wall.show { display: block; animation: fadeInUp .5s ease .3s both; }
+.btn-next-wall:active { transform: scale(.94); }
+
+/* AI对话入口按钮 */
+.btn-chat-entry {
+  display: none; margin-top: 8px; padding: 14px 32px;
+  background: linear-gradient(135deg, #ffb5c0, #d4a0b0); color: #fff;
+  border: none; border-radius: 26px; font-size: 16px; font-weight: 600; cursor: pointer;
+  transition: transform .3s, box-shadow .3s; box-shadow: 0 4px 20px rgba(200,140,160,.35);
+  touch-action: manipulation; letter-spacing: 1px;
+}
+.btn-chat-entry.show { display: block; animation: fadeInUp .5s ease .4s both; }
+.btn-chat-entry:active { transform: scale(.94); }
+
+/* ============================================================
+ *  页面3：治愈便签墙
+ * ============================================================ */
+#page-wall { padding: 20px; display: flex; flex-direction: column; }
+.wall-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; margin-bottom: 10px; }
+.wall-title { font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: 1px; }
+.nav-btn { background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.6); border-radius: 16px; padding: 9px 16px; font-size: 13px; color: var(--text-primary); cursor: pointer; transition: transform .2s, background .2s; touch-action: manipulation; white-space: nowrap; }
+.nav-btn:active { transform: scale(.93); background: rgba(255,255,255,.7); }
+.clear-btn { background: rgba(210,110,110,.13); border-color: rgba(210,110,110,.3); color: #b06060; }
+.clear-btn:active { background: rgba(210,110,110,.25); }
+.wall-nav { display: flex; gap: 10px; margin-bottom: 14px; }
+.wall-nav .nav-btn { flex: 1; text-align: center; padding: 11px 8px; font-size: 14px; }
+.wall-content {
+  flex: 1; min-height: 60vh; border-radius: 20px; padding: 22px 18px;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(180,150,120,.04) 2px, rgba(180,150,120,.04) 4px),
+              repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(180,150,120,.04) 2px, rgba(180,150,120,.04) 4px),
+              linear-gradient(180deg, rgba(200,170,140,.15), rgba(180,150,130,.1));
+  background-color: rgba(200,170,140,.06); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  box-shadow: inset 0 2px 12px rgba(0,0,0,.05);
+}
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 40vh; text-align: center; }
+.empty-state .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: .45; animation: float 3s ease-in-out infinite; }
+.empty-state .empty-text { font-size: 17px; color: var(--text-light); line-height: 1.8; }
+.note-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+.note-item { width: calc(50% - 8px); max-width: 190px; min-width: 130px; padding: 18px 14px 16px; border-radius: 3px; box-shadow: 2px 4px 12px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.04); transform: rotate(var(--rot,0deg)); transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease; cursor: pointer; position: relative; word-break: break-word; opacity: 0; }
+.note-item.show { animation: noteStaggerIn .5s ease forwards; }
+.note-item::before { content: ''; position: absolute; top: -7px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #e8d8f0, #c0a0d0); box-shadow: 0 2px 6px rgba(0,0,0,.2); z-index: 1; }
+.note-item .note-tape { position: absolute; top: -4px; right: 12px; width: 30px; height: 10px; background: rgba(220,200,160,.5); border-radius: 2px; transform: rotate(12deg); }
+@media (hover: hover) { .note-item:hover { transform: translateY(-8px) scale(1.04) rotate(var(--rot,0deg)); box-shadow: 5px 8px 24px rgba(0,0,0,.14); } }
+.note-item .note-date { font-size: 11px; color: var(--text-light); margin-bottom: 8px; position: relative; z-index: 0; }
+.note-item .note-text { font-size: 14px; color: var(--text-primary); line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; position: relative; z-index: 0; }
+.note-item .note-text.expanded { display: block; -webkit-line-clamp: unset; }
+.note-item .note-emotion { position: absolute; bottom: 6px; right: 8px; font-size: 16px; }
+
+/* ========== 弹窗 ========== */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.35); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 200; }
+.modal-overlay.show { display: flex; }
+.modal-box { background: #fff; border-radius: 24px; padding: 30px 26px 22px; max-width: 310px; width: 85%; text-align: center; box-shadow: 0 16px 48px rgba(0,0,0,.18); animation: fadeInUp .35s ease; }
+.modal-box .modal-text { font-size: 16px; color: var(--text-primary); margin-bottom: 22px; line-height: 1.7; }
+.modal-box .modal-btns { display: flex; gap: 14px; justify-content: center; }
+.modal-box .modal-btn { padding: 11px 26px; border: none; border-radius: 18px; font-size: 15px; font-weight: 600; cursor: pointer; transition: transform .2s; touch-action: manipulation; }
+.modal-box .modal-btn:active { transform: scale(.93); }
+.modal-btn.confirm { background: #e88a8a; color: #fff; }
+.modal-btn.cancel { background: rgba(245,240,248,.85); color: var(--text-primary); border: 1px solid rgba(200,180,220,.3); }
+
+/* ============================================================
+ *  AI对话浮层（新增核心模块）
+ * ============================================================ */
+.chat-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,.25); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 150; animation: fadeInUp .3s ease;
+}
+.chat-overlay.show { display: flex; }
+
+.chat-panel {
+  width: 92vw; max-width: 420px; height: 82vh; max-height: 650px;
+  background: rgba(255,248,250,.95);
+  border-radius: 28px; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(120,100,160,.25);
+  animation: slideUp .4s cubic-bezier(.34,1.56,.64,1);
+  overflow: hidden;
+}
+
+/* 肖清雅头像区 */
+.chat-header {
+  padding: 18px 20px 10px; text-align: center;
+  border-bottom: 1px solid rgba(200,180,220,.25);
+  background: linear-gradient(180deg, rgba(255,200,210,.3), transparent);
+}
+.chat-mascot {
+  width: 72px; height: 72px; margin: 0 auto 6px; position: relative;
+}
+.chat-mascot-img {
+  width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+  box-shadow: 0 4px 12px rgba(180,120,80,.3);
+  display: block;
+}
+
+.chat-header .chat-name {
+  font-size: 17px; font-weight: 700; color: #8e6bb0; letter-spacing: 1px;
+}
+.chat-header .chat-desc {
+  font-size: 12px; color: var(--text-light); margin-top: 2px;
+}
+
+/* 消息区域 */
+.chat-messages {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 14px 16px; -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* 消息气泡 */
+.chat-msg {
+  display: flex; gap: 8px; max-width: 85%;
+  animation: popIn .3s ease;
+}
+.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-msg.assistant { align-self: flex-start; }
+
+.chat-msg .msg-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; overflow: hidden;
+}
+.msg-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.chat-msg.user .msg-avatar { background: rgba(200,180,240,.25); }
+.chat-msg.assistant .msg-avatar { background: rgba(210,170,140,.2); }
+
+.chat-msg .msg-bubble {
+  padding: 12px 16px; border-radius: 18px;
+  font-size: 15px; line-height: 1.6; word-break: break-word;
+}
+.chat-msg.user .msg-bubble {
+  background: linear-gradient(135deg, #d4c0f0, #c0d0f8);
+  color: #3a3050; border-bottom-right-radius: 6px;
+}
+.chat-msg.assistant .msg-bubble {
+  background: rgba(255,255,255,.85);
+  border: 1px solid rgba(200,180,200,.15);
+  border-bottom-left-radius: 6px; color: var(--text-primary);
+}
+/* 系统消息 */
+.chat-msg-system {
+  align-self: center; max-width: 90%;
+  background: rgba(200,190,180,.15);
+  font-size: 12px; color: var(--text-light);
+  padding: 6px 14px; border-radius: 20px; text-align: center;
+  animation: popIn .3s ease;
+}
+/* 打字光标 */
+.typing-cursor::after {
+  content: '|'; animation: typingBlink .6s infinite;
+  color: var(--accent-purple); font-weight: 700;
+}
+
+/* 正在输入指示器 */
+.thinking-indicator {
+  display: none; align-items: center; gap: 4px; padding: 10px 16px;
+}
+.thinking-indicator.show { display: flex; }
+.thinking-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent-purple); opacity: .5;
+  animation: thinkingBounce 1.2s ease-in-out infinite;
+}
+.thinking-dot:nth-child(2) { animation-delay: .15s; }
+.thinking-dot:nth-child(3) { animation-delay: .3s; }
+
+/* 输入区域 */
+.chat-input-area {
+  display: flex; gap: 8px; padding: 12px 14px; align-items: center;
+  border-top: 1px solid rgba(200,180,220,.2);
+  background: rgba(255,255,255,.4);
+}
+.chat-input-area input {
+  flex: 1; padding: 12px 16px; border: 1px solid rgba(200,180,220,.4);
+  border-radius: 22px; font-size: 15px; outline: none;
+  background: rgba(255,255,255,.6); color: var(--text-primary);
+  transition: border-color .2s;
+}
+.chat-input-area input:focus { border-color: var(--accent-purple); }
+.chat-input-area input::placeholder { color: var(--text-light); }
+
+.chat-input-btn {
+  width: 44px; height: 44px; border-radius: 50%; border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; cursor: pointer; transition: transform .2s, background .2s;
+  touch-action: manipulation; flex-shrink: 0;
+}
+.chat-input-btn:active { transform: scale(.9); }
+.chat-send-btn { background: linear-gradient(135deg, var(--accent-purple), #7ea8d8); color: #fff; }
+.chat-close-btn {
+  position: absolute; top: 12px; right: 16px; width: 36px; height: 36px;
+  border-radius: 50%; border: none; background: rgba(255,255,255,.6);
+  font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: transform .2s; z-index: 10;
+}
+.chat-close-btn:active { transform: scale(.9); }
+.chat-header-back { font-size: 11px; color: var(--text-light); text-align: center; cursor: pointer; margin-top: 4px; opacity: .5; transition: opacity .2s; letter-spacing: 1px; }
+.chat-header-back:hover { opacity: 1; }
+
+/* API Key 输入弹窗 */
+#apiKeyModal .modal-box { max-width: 360px; }
+#apiKeyModal .modal-box input {
+  width: 100%; padding: 12px 14px; border: 1px solid rgba(200,180,220,.4);
+  border-radius: 14px; font-size: 14px; margin-bottom: 16px; outline: none;
+}
+#apiKeyModal .modal-box input:focus { border-color: var(--accent-purple); }
+#apiKeyModal .modal-hint {
+  font-size: 12px; color: var(--text-light); margin-bottom: 14px; line-height: 1.5;
+}
+
+/* 欢迎消息 */
+.chat-welcome {
+  padding: 12px 16px; background: rgba(255,200,215,.15);
+  border-radius: 16px; text-align: center; font-size: 14px;
+  color: var(--text-secondary); line-height: 1.6; margin-bottom: 4px;
+}
+
+/* 轮次提示 */
+.chat-round-hint {
+  text-align: center; font-size: 11px; color: var(--text-light);
+  padding: 4px 0; border-top: 1px dashed rgba(200,180,220,.15);
+}
+
+/* ============================================================
+ *  占卜游戏浮层（右侧内置）
+ * ============================================================ */
+.divination-fab {
+  position: fixed; right: 16px; bottom: 100px; z-index: 100;
+  width: 54px; height: 54px; border-radius: 50%;
+  background: linear-gradient(135deg, #d4a0d8, #b080c0);
+  border: 2px solid rgba(255,255,255,.5);
+  box-shadow: 0 4px 20px rgba(160,100,180,.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; cursor: pointer;
+  transition: transform .3s, box-shadow .3s;
+  touch-action: manipulation;
+  animation: float 3s ease-in-out infinite;
+}
+.divination-fab:active { transform: scale(.9); }
+
+.divination-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,.25); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 180; animation: fadeInUp .3s ease;
+}
+.divination-overlay.show { display: flex; }
+
+.divination-panel {
+  width: 88vw; max-width: 380px;
+  background: rgba(255,248,250,.95);
+  border-radius: 28px; padding: 24px 18px 22px;
+  box-shadow: 0 20px 60px rgba(120,100,160,.25);
+  animation: slideUp .4s cubic-bezier(.34,1.56,.64,1);
+  text-align: center; position: relative;
+}
+.divination-close-btn {
+  position: absolute; top: 12px; right: 14px; width: 32px; height: 32px;
+  border-radius: 50%; border: none; background: rgba(255,255,255,.5);
+  font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: transform .2s;
+}
+.divination-close-btn:active { transform: scale(.9); }
+.divination-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.divination-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+
+.divination-cards {
+  display: flex; gap: 14px; justify-content: center; margin: 18px 0;
+  perspective: 800px;
+}
+.divination-card {
+  width: 84px; height: 126px; border-radius: 14px; position: relative;
+  cursor: pointer; touch-action: manipulation;
+  transition: transform .5s cubic-bezier(.34,1.56,.64,1), box-shadow .5s;
+  transform-style: preserve-3d;
+  box-shadow: 0 4px 16px rgba(120,80,140,.25);
+}
+.divination-card .card-face {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  border-radius: 14px; backface-visibility: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.divination-card .card-back {
+  background: linear-gradient(145deg, #d4b8e0, #b898c8);
+  border: 2px solid rgba(255,255,255,.4);
+  z-index: 2;
+}
+.divination-card .card-back::after {
+  content: '✦'; font-size: 32px; color: rgba(255,255,255,.7);
+}
+.divination-card .card-front {
+  background: linear-gradient(145deg, #fff8f0, #f8f0ff);
+  border: 2px solid rgba(200,180,220,.4);
+  transform: rotateY(180deg);
+  flex-direction: column; gap: 4px;
+}
+.divination-card.flipped { transform: rotateY(180deg); box-shadow: 0 6px 24px rgba(160,120,190,.3); }
+.divination-card:active:not(.flipped) { transform: scale(.92); }
+
+.divination-result {
+  display: none; margin-top: 16px; padding: 16px;
+  background: rgba(255,255,255,.7);
+  border-radius: 18px; border: 1px solid rgba(200,180,220,.2);
+  animation: fadeInUp .5s ease .2s both;
+}
+.divination-result.show { display: block; }
+.divination-result .result-emoji { font-size: 36px; margin-bottom: 6px; }
+.divination-result .result-name { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+.divination-result .result-meaning { font-size: 14px; color: var(--accent-purple); font-weight: 500; margin-bottom: 10px; }
+.divination-result .result-comfort { font-size: 14px; color: var(--text-secondary); line-height: 1.8; }
+
+.divination-save-btn {
+  display: none; margin: 14px auto 0; padding: 11px 28px;
+  background: linear-gradient(135deg, #d4a0d8, #b080c0); color: #fff;
+  border: none; border-radius: 22px; font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  touch-action: manipulation;
+}
+.divination-save-btn:active { transform: scale(.94); }
+.divination-save-btn.show { display: inline-block; animation: fadeInUp .4s ease .3s both; }
+
+.divination-redo {
+  display: none; margin-top: 6px; background: none; border: none;
+  font-size: 13px; color: var(--text-light); cursor: pointer; padding: 6px;
+  touch-action: manipulation;
+}
+.divination-redo.show { display: inline-block; }
+
+/* ============================================================
+ *  打沙袋解压小游戏（右侧上方）
+ * ============================================================ */
+.punch-fab {
+  position: fixed; right: 16px; top: 80px; z-index: 100;
+  width: 54px; height: 54px; border-radius: 50%;
+  background: linear-gradient(135deg, #e88a7a, #c06050);
+  border: 2px solid rgba(255,255,255,.5);
+  box-shadow: 0 4px 20px rgba(180,80,60,.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; cursor: pointer;
+  transition: transform .3s, box-shadow .3s;
+  touch-action: manipulation;
+}
+.punch-fab:active { transform: scale(.9); }
+
+.punch-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,.25); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 185; animation: fadeInUp .3s ease;
+}
+.punch-overlay.show { display: flex; }
+
+.punch-panel {
+  width: 88vw; max-width: 380px;
+  background: rgba(255,248,250,.95);
+  border-radius: 28px; padding: 24px 18px 20px;
+  box-shadow: 0 20px 60px rgba(120,100,160,.25);
+  animation: slideUp .4s cubic-bezier(.34,1.56,.64,1);
+  text-align: center; position: relative; overflow: hidden;
+}
+.punch-close-btn {
+  position: absolute; top: 12px; right: 14px; width: 32px; height: 32px;
+  border-radius: 50%; border: none; background: rgba(255,255,255,.5);
+  font-size: 16px; cursor: pointer; transition: transform .2s; z-index: 2;
+}
+.punch-close-btn:active { transform: scale(.9); }
+.punch-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+.punch-hint { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; min-height: 20px; }
+
+/* 沙袋绘制 */
+.punch-bag-wrapper {
+  position: relative; width: 140px; height: 210px;
+  margin: 4px auto; cursor: pointer; touch-action: manipulation;
+  transform-origin: top center;
+  transition: transform .08s;
+}
+.punch-bag-wrapper.swing { animation: bagSwing .85s ease-out; }
+@keyframes bagSwing {
+  0% { transform: rotate(0deg); }
+  8% { transform: rotate(-24deg); }
+  28% { transform: rotate(18deg); }
+  52% { transform: rotate(-9deg); }
+  74% { transform: rotate(5deg); }
+  100% { transform: rotate(0deg); }
+}
+.bag-chain {
+  width: 3px; height: 32px; background: linear-gradient(180deg, #b0a0b8, #908098);
+  margin: 0 auto; border-radius: 2px;
+}
+.bag-mount {
+  width: 24px; height: 8px; background: #908098; border-radius: 4px;
+  margin: 0 auto; position: relative;
+}
+.bag-mount::after {
+  content: ''; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+  width: 6px; height: 6px; background: #706078; border-radius: 50%;
+}
+.bag-body {
+  width: 100px; height: 130px; margin: -2px auto 0;
+  background: linear-gradient(180deg, #c0392b, #a93226, #922b21);
+  border-radius: 20px 20px 30px 30px; position: relative;
+  box-shadow: inset 0 -10px 24px rgba(0,0,0,.25), inset 0 8px 20px rgba(255,255,255,.1), 0 4px 12px rgba(0,0,0,.15);
+  overflow: hidden;
+}
+.bag-body::before { content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 60px; height: 3px; background: rgba(0,0,0,.1); border-radius: 2px; }
+.bag-body::after { content: ''; position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); width: 50px; height: 3px; background: rgba(0,0,0,.1); border-radius: 2px; }
+.bag-stitch { position: absolute; left: 10px; top: 14px; bottom: 14px; width: 2px; background: repeating-linear-gradient(180deg, rgba(150,50,40,.3) 0px, rgba(150,50,40,.3) 3px, transparent 3px, transparent 6px); }
+.bag-damage {
+  position: absolute; border-radius: 4px; display: none; pointer-events: none;
+  background: rgba(60,20,10,.35); border: 1px dashed rgba(40,10,5,.25);
+}
+.bag-damage.show { display: block; }
+.bag-damage.d1 { width: 18px; height: 12px; top: 28px; left: 12px; transform: rotate(-8deg); }
+.bag-damage.d2 { width: 14px; height: 22px; top: 55px; right: 14px; transform: rotate(12deg); }
+.bag-damage.d3 { width: 24px; height: 10px; top: 80px; left: 20px; transform: rotate(-5deg); }
+.bag-damage.d4 { width: 12px; height: 16px; top: 95px; right: 18px; transform: rotate(18deg); }
+.bag-damage.d5 { width: 30px; height: 8px; top: 45px; left: 30px; transform: rotate(-3deg); }
+
+/* 击打特效 */
+.punch-impact {
+  position: absolute; pointer-events: none; z-index: 10; font-size: 32px;
+  animation: punchImpact .7s ease-out forwards;
+}
+@keyframes punchImpact {
+  0% { transform: translate(-50%,-50%) scale(.3); opacity: 1; }
+  50% { transform: translate(-50%,-50%) scale(1.6); opacity: .6; }
+  100% { transform: translate(-50%,-50%) scale(3); opacity: 0; }
+}
+.punch-flying-particle {
+  position: fixed; pointer-events: none; z-index: 190; font-size: 22px;
+  animation: punchFly 1s ease-out forwards;
+}
+@keyframes punchFly {
+  0% { transform: translate(0,0) scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--px),var(--py)) scale(0) rotate(360deg); opacity: 0; }
+}
+
+.punch-counter {
+  margin: 8px 0; font-size: 15px; color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.punch-num { font-size: 40px; font-weight: 800; color: #c0392b; display: inline-block; transition: transform .15s; line-height: 1; }
+.punch-num.bounce { animation: countPulse .3s ease; }
+.punch-total { font-size: 18px; color: var(--text-light); }
+.punch-progress-bar { width: 180px; height: 6px; background: rgba(200,180,220,.3); border-radius: 3px; margin: 6px auto 0; overflow: hidden; }
+.punch-progress-fill { height: 100%; background: linear-gradient(90deg, #c0392b, #e88a7a); border-radius: 3px; transition: width .3s ease; width: 0%; }
+.punch-encouragement { font-size: 13px; color: var(--accent-pink); margin-top: 6px; min-height: 20px; }
+
+.punch-complete {
+  display: none; margin-top: 12px; padding: 16px;
+  background: rgba(255,200,150,.2); border-radius: 16px;
+  animation: fadeInUp .5s ease;
+}
+.punch-complete.show { display: block; }
+.punch-complete-text { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.punch-complete-btn {
+  padding: 10px 24px; border: none; border-radius: 20px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: transform .2s; touch-action: manipulation; margin: 4px;
+}
+.punch-complete-btn:active { transform: scale(.94); }
+.punch-complete-btn.primary { background: linear-gradient(135deg, #d4a0d8, #b080c0); color: #fff; }
+.punch-complete-btn.secondary { background: rgba(255,255,255,.5); color: var(--text-primary); border: 1px solid rgba(200,180,220,.3); }
+
+/* 第5拳暴击特效 */
+.punch-flash {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 200;
+  animation: punchFlash .5s ease-out forwards;
+}
+@keyframes punchFlash {
+  0% { background: rgba(255,255,200,.4); }
+  100% { background: transparent; }
+}
+@keyframes punchPanelShake {
+  0%,100% { transform: translate(0,0); }
+  15% { transform: translate(-8px,4px); }
+  30% { transform: translate(6px,-6px); }
+  45% { transform: translate(-4px,3px); }
+  60% { transform: translate(3px,-2px); }
+  75% { transform: translate(-2px,1px); }
+}
+
+/* ============================================================
+ *  场景D：研墨消愁（国风治愈）
+ * ============================================================ */
+/* 竖排入口卡片 */
+.emotion-card.ink-card { background: linear-gradient(145deg, rgba(240,235,225,.45), rgba(230,220,210,.4)); border: 1px solid rgba(180,160,130,.35); }
+.emotion-card.ink-card .card-content { display: flex; flex-direction: column; align-items: center; }
+.ink-card-seal {
+  width: 44px; height: 44px; border: 2.5px solid #c04030; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 4px; background: rgba(200,80,50,.08);
+  transform: rotate(-3deg); transition: transform .3s;
+}
+.emotion-card.ink-card:active .ink-card-seal { transform: rotate(-8deg) scale(.92); }
+.ink-card-seal-inner {
+  width: 28px; height: 28px; border: 1px solid #c04030; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+.ink-card-seal-inner::after { content: '印'; font-size: 14px; color: #c04030; font-weight: 700; }
+.ink-card-label-v {
+  font-size: 15px; font-weight: 700; color: #5a4030; letter-spacing: 3px;
+  writing-mode: vertical-lr; line-height: 1.3;
+}
+.ink-card-hint { font-size: 11px; color: #a08070; margin-top: 3px; }
+
+#scenario-ink .ink-area { width: 100%; max-width: 340px; margin: 0 auto; }
+#scenario-ink .heal-title { margin-bottom: 2px; }
+#scenario-ink .heal-guide { margin-bottom: 10px; }
+
+/* 砚台与墨条 */
+.inkstone-wrapper {
+  position: relative; width: 190px; height: 130px; margin: 0 auto 12px;
+  touch-action: none; cursor: grab;
+}
+.inkstone-base {
+  width: 100%; height: 100%; border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 45%, #6b6058, #4a423a, #332d28);
+  box-shadow: 0 6px 24px rgba(0,0,0,.3), inset 0 2px 6px rgba(255,255,255,.06);
+  position: relative; overflow: hidden;
+}
+.inkstone-base::after {
+  content: ''; position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px;
+  border-radius: 18px; border: 1.5px solid rgba(180,160,140,.2);
+}
+.inkstone-pool {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  width: 100px; height: 60px; border-radius: 40%;
+  background: radial-gradient(ellipse at center, rgba(30,25,20,.7), rgba(20,15,10,.85));
+  transition: background .8s ease;
+}
+.inkstone-rim {
+  position: absolute; top: 2px; left: 10%; width: 80%; height: 5px;
+  background: rgba(255,255,255,.08); border-radius: 3px;
+}
+.ink-pool-water {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  width: 90px; height: 50px; border-radius: 40%; pointer-events: none;
+  transition: background .8s ease; z-index: 1;
+}
+.ink-stick {
+  position: absolute; top: 3px; left: 50%; transform: translateX(-50%) rotate(var(--stick-rot,0deg));
+  width: 18px; height: 38px; border-radius: 4px;
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a, #1a1a1a);
+  box-shadow: 0 2px 6px rgba(0,0,0,.4); z-index: 2;
+  transition: transform .15s, left .15s, top .15s;
+}
+.ink-stick::after { content: ''; position: absolute; bottom: 2px; left: 2px; right: 2px; height: 8px; background: rgba(255,255,255,.06); border-radius: 1px; }
+
+.ink-circle-hint {
+  text-align: center; font-size: 13px; color: #8a7a6a; margin-bottom: 6px; min-height: 18px;
+}
+.ink-progress {
+  display: flex; gap: 10px; justify-content: center; margin-bottom: 6px;
+}
+.ink-progress-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(80,60,40,.15); border: 1.5px solid rgba(80,60,40,.25);
+  transition: background .5s, box-shadow .5s;
+}
+.ink-progress-dot.done { background: #2a2018; border-color: #2a2018; box-shadow: 0 0 8px rgba(40,30,20,.35); }
+
+/* 烦恼标签 */
+.ink-worry-labels {
+  position: relative; height: 80px; margin-bottom: 6px;
+}
+.ink-worry-tag {
+  position: absolute; padding: 6px 14px; background: rgba(255,245,240,.7);
+  border: 1px solid rgba(180,160,140,.3); border-radius: 14px;
+  font-size: 13px; color: #6a5a4a; transition: opacity .8s ease, transform .8s ease;
+  pointer-events: none; white-space: nowrap;
+}
+.ink-worry-tag:nth-child(1) { top: 10px; left: 8%; }
+.ink-worry-tag:nth-child(2) { top: 35px; right: 6%; }
+.ink-worry-tag:nth-child(3) { top: 5px; left: 40%; }
+.ink-worry-tag.fading { opacity: .15; transform: translateY(12px) scale(.9); }
+
+/* 毛笔与安字 */
+.brush-writing-area {
+  display: none; margin: 8px auto 0; padding: 14px;
+  background: linear-gradient(135deg, rgba(245,240,230,.4), rgba(240,232,215,.3));
+  border-radius: 16px; border: 1px solid rgba(180,160,130,.3);
+  animation: fadeInUp .8s ease;
+}
+.brush-writing-area.show { display: block; }
+.brush-icon { font-size: 28px; margin: 0 auto 4px; animation: brushDip .8s ease; width: 40px; }
+@keyframes brushDip {
+  0% { transform: translateY(-20px) rotate(-30deg); opacity: 0; }
+  60% { transform: translateY(4px) rotate(5deg); opacity: 1; }
+  100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+}
+.an-char-svg { width: 120px; height: 120px; display: block; margin: 0 auto; }
+.an-char-text {
+  fill: #2a2018; font-family: "KaiTi","STKaiti","SimSun","Noto Serif CJK SC",serif;
+  font-size: 72px; font-weight: 500;
+}
+.an-char-svg.reveal {
+  animation: anReveal 1.8s cubic-bezier(.43,.195,.02,.985) forwards;
+}
+@keyframes anReveal {
+  0% { clip-path: inset(0 100% 100% 0); }
+  45% { clip-path: inset(0 20% 30% 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+
+/* ============================================================
+ *  背景水晶球水印装饰
+ * ============================================================ */
+.bg-crystal-watermark {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 380px; height: 380px; pointer-events: none; z-index: 0;
+  opacity: .04; animation: watermarkFloat 16s ease-in-out infinite;
+}
+.bg-crystal-watermark svg { width: 100%; height: 100%; }
+@keyframes watermarkFloat {
+  0%,100% { transform: translate(-50%,-50%) scale(1); }
+  50% { transform: translate(-50%,-50%) scale(1.05); }
+}
+
+/* 转场花瓣散出动画 */
+.station-transition-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none; overflow: hidden;
+  background: transparent;
+}
+.st-petal {
+  position: absolute;
+  border-radius: 50% 0 50% 0;
+  will-change: transform;
+}
+.st-petal.scatter {
+  animation: stScatter var(--tdur,.8s) cubic-bezier(.25,.46,.45,.94) var(--tdel,0s) forwards;
+}
+@keyframes stScatter {
+  0% {
+    transform: translate(0, 0) rotate(var(--rot0,0deg)) scale(var(--sc0,2.5));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx,400px), var(--ty,300px)) rotate(var(--rot1,720deg)) scale(.5);
+    opacity: 0;
+  }
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 420px) {
+  .page { padding: 14px; }
+  #page-home { padding-top: 30px; }
+  .home-title { font-size: 24px; }
+  .emotion-card { padding: 16px 10px 13px; }
+  .face-container { width: 54px; height: 54px; }
+  .face-eye { width: 7px; height: 9px; top: 15px; }
+  .face-eye.left { left: 11px; } .face-eye.right { right: 11px; }
+  .face-mouth { width: 22px; }
+  .face-blush { width: 11px; height: 6px; top: 23px; }
+  .face-blush.left { left: 4px; } .face-blush.right { right: 4px; }
+  .emotion-card .card-label { font-size: 13px; }
+  .scenario .heal-title { font-size: 20px; }
+  #scenario-bubble .bubble { width: 120px; height: 120px; }
+  #scenario-bubble .bubble-area { width: 180px; height: 180px; }
+  .pulse-ring { width: 120px; height: 120px; }
+  .bubble-countdown { font-size: 32px; }
+  .jar-container { width: 130px; height: 175px; }
+  .jar-body { width: 120px; height: 150px; }
+  .jar-lid { width: 80px; }
+  .jar-neck { width: 70px; }
+  .note-item { width: calc(50% - 6px); min-width: 110px; padding: 15px 12px 14px; }
+  .wall-title { font-size: 19px; }
+  .chat-panel { width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
+  .chat-messages { padding: 10px 10px; }
+}
+@media (min-width: 768px) {
+  .emotion-card { max-width: 185px; }
+  .emotion-grid { max-width: 520px; gap: 18px; }
+  .note-item { max-width: 230px; }
+}
+@supports (padding: env(safe-area-inset-bottom)) {
+  .page { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .chat-input-area { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+}
+
+.music-toggle {
+  position: fixed; bottom: 28px; right: 20px; z-index: 1000;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 20px; color: var(--text-primary);
+  transition: transform .3s, box-shadow .3s;
+  box-shadow: 0 2px 12px var(--glass-shadow);
+  touch-action: manipulation; user-select: none;
+}
+.music-toggle:hover { transform: scale(1.08); }
+.music-toggle.playing { animation: musicPulse 2s ease-in-out infinite; }
+@keyframes musicPulse {
+  0%,100% { box-shadow: 0 2px 12px var(--glass-shadow); }
+  50% { box-shadow: 0 2px 24px rgba(180,140,210,.3); }
+}
+@media (max-width: 420px) {
+  .music-toggle { bottom: 18px; right: 14px; width: 36px; height: 36px; font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- 转场花瓣层 -->
+  <div class="station-transition-overlay" id="stationTransitionOverlay"></div>
+  <!-- 壁纸遮罩 -->
+  <div class="bg-image-overlay"></div>
+
+  <!-- 装饰光斑 -->
+  <div class="bg-orbs" id="bgOrbs">
+    <div class="bg-orb"></div><div class="bg-orb"></div><div class="bg-orb"></div>
+  </div>
+  <!-- 上升粒子 -->
+  <div class="bg-particles" id="bgParticles"></div>
+  <!-- 闪烁星光 -->
+  <div class="bg-sparkles" id="bgSparkles"></div>
+
+  <!-- 背景水晶球水印装饰 -->
+  <div class="bg-crystal-watermark" aria-hidden="true">
+    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="crystalSphere" cx="40%" cy="30%" r="70%">
+          <stop offset="0%" stop-color="#e0e8f8"/>
+          <stop offset="40%" stop-color="#c8d8f0"/>
+          <stop offset="80%" stop-color="#a8bce0"/>
+          <stop offset="100%" stop-color="#8898c0"/>
+        </radialGradient>
+        <radialGradient id="crystalShine" cx="30%" cy="25%" r="40%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="crystalGlow" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#b0c8f0" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#b0c8f0" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- 底座 -->
+      <ellipse cx="60" cy="98" rx="22" ry="6" fill="#b8a890" opacity="0.6"/>
+      <rect x="48" y="90" width="24" height="10" rx="3" fill="#c8b8a0" opacity="0.5"/>
+      <ellipse cx="60" cy="90" rx="16" ry="4" fill="#d8c8b0" opacity="0.5"/>
+      <!-- 外发光 -->
+      <circle cx="60" cy="48" r="46" fill="url(#crystalGlow)"/>
+      <!-- 球体 -->
+      <circle cx="60" cy="48" r="42" fill="url(#crystalSphere)"/>
+      <!-- 高光 -->
+      <circle cx="60" cy="48" r="42" fill="url(#crystalShine)"/>
+      <!-- 内部星光 -->
+      <circle cx="45" cy="35" r="2" fill="#ffffff" opacity="0.6"/>
+      <circle cx="70" cy="30" r="1.5" fill="#ffffff" opacity="0.5"/>
+      <circle cx="55" cy="55" r="1.8" fill="#ffffff" opacity="0.4"/>
+      <circle cx="78" cy="50" r="1.2" fill="#ffffff" opacity="0.35"/>
+      <circle cx="42" cy="58" r="1" fill="#ffffff" opacity="0.3"/>
+      <!-- 星星闪烁 -->
+      <path d="M52 22 l1.5-3 l1.5 3 l-3 1.5 z" fill="#ffffff" opacity="0.5"/>
+      <path d="M75 62 l1-2 l1 2 l-2 1 z" fill="#ffffff" opacity="0.4"/>
+      <path d="M38 45 l1.2-2.4 l1.2 2.4 l-2.4 1.2 z" fill="#ffffff" opacity="0.35"/>
+      <!-- 球体底部弧光 -->
+      <path d="M30 60 Q60 82 90 60" fill="none" stroke="#d0d8f0" stroke-width="0.8" opacity="0.3"/>
+      <!-- 球体光圈 -->
+      <circle cx="60" cy="48" r="42" fill="none" stroke="#e0e8ff" stroke-width="0.5" opacity="0.2"/>
+    </svg>
+  </div>
+
+  <!-- ========== 页面1：情绪选择主页 ========== -->
+  <div id="page-home" class="page active">
+    <div class="home-title">嗨，今天感觉如何？</div>
+    <div class="home-subtitle">选一个情绪，让温暖治愈你</div>
+    <div class="emotion-grid" id="emotionGrid"></div>
+    <div class="home-footer">❤ 今天想被怎样抱抱？</div>
+    <div class="home-exit-btn" id="homeExitBtn">← 退出小站</div>
+  </div>
+
+  <!-- ========== 页面2：治愈空间 ========== -->
+  <div id="page-heal" class="page">
+    <div id="scenario-bubble" class="scenario">
+      <div class="heal-title">一起呼吸</div>
+      <div class="heal-guide">把手指放在气泡上，跟着它呼吸</div>
+      <div class="bubble-area" id="bubbleArea">
+        <div class="pulse-ring" id="pulseRing1"></div>
+        <div class="pulse-ring" id="pulseRing2"></div>
+        <div class="pulse-ring" id="pulseRing3"></div>
+        <div class="bubble" id="bubble">
+          <div class="bubble-shine"></div>
+          <div class="bubble-shine2"></div>
+          <div class="bubble-countdown" id="bubbleCountdown"></div>
+        </div>
+      </div>
+      <div class="breath-phase-text" id="breathPhaseText">轻轻按住气泡 · 吸气</div>
+      <div class="heal-encouragement" id="bubbleEncouragement">你呼出的不安，已经变成透明泡泡飘走了 🫧</div>
+      <button class="btn-chat-entry" id="btnChatFromBubble">🫂 还想和清雅说说吗？</button>
+      <button class="btn-next-wall" id="btnNextFromBubble">去看看我的治愈墙 →</button>
+    </div>
+
+    <div id="scenario-labels" class="scenario">
+      <div class="heal-title">撕掉标签</div>
+      <div class="heal-guide">把这些标签拖进🗑️吧，撕掉那些不属于你的定义</div>
+      <div class="labels-area" id="labelsArea"></div>
+      <div class="trash-zone" id="trashZone">
+        <div class="trash-lid" id="trashLid"></div>🗑️
+        <span class="trash-count" id="trashCount">0</span>
+      </div>
+      <div class="heal-encouragement" id="labelEncouragement">这些标签早就过期了，撕得漂亮 ✨</div>
+      <button class="btn-chat-entry" id="btnChatFromLabels">🫂 还想和清雅说说吗？</button>
+      <button class="btn-next-wall" id="btnNextFromLabels">去看看我的治愈墙 →</button>
+    </div>
+
+    <div id="scenario-jar" class="scenario">
+      <div class="heal-title">收集星光</div>
+      <div class="heal-guide">点击屏幕收集星星 ✨</div>
+      <div class="jar-container" id="jarContainer">
+        <div class="jar-lid"></div><div class="jar-neck"></div>
+        <div class="jar-body">
+          <div class="jar-glow" id="jarGlow"></div>
+          <div class="jar-fill" id="jarFill"></div>
+          <div class="jar-stars-container" id="jarStarsContainer"></div>
+        </div>
+      </div>
+      <div class="jar-progress-text" id="jarProgressText">⭐ 已收集 0 / 10 颗星星</div>
+      <div class="heal-encouragement" id="jarEncouragement">你收集的星光，足以照亮今夜 🌟</div>
+      <button class="btn-chat-entry" id="btnChatFromJar">🫂 还想和清雅说说吗？</button>
+      <button class="btn-next-wall" id="btnNextFromJar">去看看我的治愈墙 →</button>
+    </div>
+
+    <div id="scenario-ink" class="scenario">
+      <div class="heal-title">研墨消愁</div>
+      <div class="heal-guide">在砚台上顺时针画圈研墨<br>磨去烦恼，落笔心安</div>
+      <div class="ink-worry-labels" id="inkWorryLabels">
+        <div class="ink-worry-tag">烦躁不安</div>
+        <div class="ink-worry-tag">心头堵得慌</div>
+        <div class="ink-worry-tag">说不出的苦</div>
+      </div>
+      <div class="inkstone-wrapper" id="inkstoneWrapper">
+        <div class="inkstone-base">
+          <div class="inkstone-rim"></div>
+          <div class="inkstone-pool" id="inkstonePool"></div>
+          <div class="ink-pool-water" id="inkPoolWater"></div>
+        </div>
+        <div class="ink-stick" id="inkStick"></div>
+      </div>
+      <div class="ink-circle-hint" id="inkCircleHint">顺时针画圈，研出墨来 ✦</div>
+      <div class="ink-progress">
+        <div class="ink-progress-dot" id="inkDot1"></div>
+        <div class="ink-progress-dot" id="inkDot2"></div>
+        <div class="ink-progress-dot" id="inkDot3"></div>
+      </div>
+      <div class="brush-writing-area" id="brushWritingArea">
+        <div class="brush-icon" id="brushIcon">🖌️</div>
+        <svg class="an-char-svg" id="anCharSvg" viewBox="0 0 100 100">
+          <text x="50" y="80" text-anchor="middle" class="an-char-text">安</text>
+        </svg>
+      </div>
+      <div class="heal-encouragement" id="inkEncouragement">磨去三千烦恼，落纸一安。</div>
+      <button class="btn-chat-entry" id="btnChatFromInk">🫂 还想和清雅说说吗？</button>
+      <button class="btn-next-wall" id="btnNextFromInk">去看看我的治愈墙 →</button>
+    </div>
+  </div>
+
+  <!-- ========== 页面3：治愈便签墙 ========== -->
+  <div id="page-wall" class="page">
+    <div class="wall-header">
+      <div class="wall-title">📌 你捡起的温柔</div>
+      <button class="nav-btn clear-btn" id="clearNotesBtn">清空便签</button>
+    </div>
+    <div class="wall-nav">
+      <button class="nav-btn" id="btnBackHome">← 返回主页</button>
+      <button class="nav-btn" id="btnReHeal">❤ 再做一次</button>
+    </div>
+    <div class="wall-content" id="wallContent"></div>
+  </div>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-text">确定要清空所有便签吗？<br>这个操作无法撤销哦</div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" id="modalCancel">再想想</button>
+      <button class="modal-btn confirm" id="modalConfirm">确定清空</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI对话浮层 -->
+<div class="chat-overlay" id="chatOverlay">
+  <div class="chat-panel">
+    <button class="chat-close-btn" id="chatCloseBtn">✕</button>
+    <div class="chat-header">
+      <div class="chat-mascot">
+      <img src="touxiang.jpg" alt="清雅" class="chat-mascot-img">
+    </div>
+      <div class="chat-name">肖清雅</div>
+      <div class="chat-desc">鹅城一中 · 你的青梅竹马 📖</div>
+      <div class="chat-header-actions" style="margin-top:2px;font-size:11px;display:flex;justify-content:center;align-items:center;gap:12px;">
+        <span class="chat-key-status" id="chatKeyStatus" style="color:var(--text-light);"></span>
+        <span class="chat-clear-key" id="chatClearKey" style="color:#b08090;cursor:pointer;text-decoration:underline;display:none;" title="清除已保存的API Key">清除Key</span>
+        <span id="chatApiKeyBtn" style="cursor:pointer;font-size:14px;" title="API Key 设置">⚙</span>
+      </div>
+      <div class="chat-header-back" id="chatBackBtn">返回主页</div>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-round-hint" id="chatRoundHint"></div>
+    <div class="chat-input-area">
+      <input type="text" id="chatInput" placeholder="和清雅说点什么吧..." maxlength="200" autocomplete="off">
+      <button class="chat-input-btn chat-send-btn" id="chatSendBtn">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- API Key输入弹窗 -->
+<div class="modal-overlay" id="apiKeyModal">
+  <div class="modal-box">
+    <div class="modal-text">📖 API Key 设置</div>
+    <div class="modal-hint">留空使用服务器 AI，也可输入你自己的 Key</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="ak-provider-btn active" id="akProviderZhipu" data-provider="zhipu" style="flex:1;padding:8px 0;border-radius:10px;border:2px solid rgba(200,180,220,.4);background:rgba(255,255,255,.08);font-size:13px;font-weight:600;cursor:pointer;text-align:center;color:var(--text-primary);transition:all .2s;">智谱 GLM</button>
+      <button class="ak-provider-btn" id="akProviderDeepseek" data-provider="deepseek" style="flex:1;padding:8px 0;border-radius:10px;border:2px solid rgba(200,180,220,.4);background:rgba(255,255,255,.08);font-size:13px;font-weight:600;cursor:pointer;text-align:center;color:var(--text-primary);transition:all .2s;">DeepSeek</button>
+    </div>
+    <input type="password" id="apiKeyInput" placeholder="输入你的 API Key..." autocomplete="off">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" id="apiKeySkip">跳过</button>
+      <button class="modal-btn confirm" id="apiKeySave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 占卜浮动按钮 -->
+<button class="divination-fab" id="divinationFab">🔮</button>
+
+<!-- 占卜浮层 -->
+<div class="divination-overlay" id="divinationOverlay">
+  <div class="divination-panel">
+    <button class="divination-close-btn" id="divinationCloseBtn">✕</button>
+    <div class="divination-title">🔮 今日占卜</div>
+    <div class="divination-subtitle">选一张你最有感觉的牌</div>
+    <div class="divination-cards" id="divinationCards"></div>
+    <div class="divination-result" id="divinationResult">
+      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="result-name" id="resultName"></div>
+      <div class="result-meaning" id="resultMeaning"></div>
+      <div class="result-comfort" id="resultComfort"></div>
+    </div>
+    <button class="divination-save-btn" id="divinationSaveBtn">📌 保存到便签墙</button>
+    <button class="divination-redo" id="divinationRedo">再抽一次 ✨</button>
+  </div>
+</div>
+
+<!-- 打沙袋浮动按钮 -->
+<button class="punch-fab" id="punchFab">🥊</button>
+
+<!-- 打沙袋解压浮层 -->
+<div class="punch-overlay" id="punchOverlay">
+  <div class="punch-panel">
+    <button class="punch-close-btn" id="punchCloseBtn">✕</button>
+    <div class="punch-title">🥊 打沙袋 · 发泄局</div>
+    <div class="punch-hint" id="punchHint">点击沙袋出拳，把不开心都打飞！</div>
+    <div class="punch-bag-wrapper" id="punchBagWrapper">
+      <div class="bag-chain"></div>
+      <div class="bag-mount"></div>
+      <div class="bag-body" id="punchBagBody">
+        <div class="bag-stitch"></div>
+        <div class="bag-damage d1" id="bagD1"></div>
+        <div class="bag-damage d2" id="bagD2"></div>
+        <div class="bag-damage d3" id="bagD3"></div>
+        <div class="bag-damage d4" id="bagD4"></div>
+        <div class="bag-damage d5" id="bagD5"></div>
+      </div>
+    </div>
+    <div class="punch-counter">
+      <span class="punch-num" id="punchNum">0</span>
+      <span class="punch-total"> / 10</span>
+    </div>
+    <div class="punch-progress-bar"><div class="punch-progress-fill" id="punchProgressFill"></div></div>
+    <div class="punch-encouragement" id="punchEncouragement"></div>
+    <div class="punch-complete" id="punchComplete">
+      <div class="punch-complete-text">🎉 释放完成！你好棒！</div>
+      <button class="punch-complete-btn primary" id="punchCompleteSave">📌 保存到便签墙</button>
+      <button class="punch-complete-btn secondary" id="punchCompleteClose">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+ *  情绪急救站 v3.0 —— 完整 JavaScript
+ *  新增：AI对话模块(DeepSeek API + 离线降级 + 摇一摇)
+ * ============================================================ */
+
+/* ========== 1. 数据定义 ========== */
+const EMOTIONS = [
+  { id: 'kaixin',  label: '开心', faceClass: 'emotion-kaixin',  scenario: 'bubble' },
+  { id: 'jiaolv',  label: '焦虑', faceClass: 'emotion-jiaolv',  scenario: 'labels' },
+  { id: 'pibei',   label: '疲惫', faceClass: 'emotion-pibei',   scenario: 'jar' },
+  { id: 'nanguo',  label: '难过', faceClass: 'emotion-nanguo',  scenario: 'bubble' },
+  { id: 'gudu',    label: '孤独', faceClass: 'emotion-gudu',    scenario: 'jar' },
+  { id: 'fennu',   label: '愤怒', faceClass: 'emotion-fennu',   scenario: 'labels' },
+  { id: 'pingjing',label: '平静', faceClass: 'emotion-pingjing', scenario: 'bubble' },
+  { id: 'ink',     label: '研墨消愁', faceClass: 'ink-card', scenario: 'ink' }
+];
+
+const LABEL_TEXTS   = ['我不够好', '好多deadline', '没人理解我', '我好焦虑', '总是做不好', '好累啊'];
+const LABEL_COLORS  = ['rgba(255,230,220,0.8)', 'rgba(220,230,255,0.8)', 'rgba(255,240,210,0.8)', 'rgba(230,220,255,0.8)', 'rgba(220,255,235,0.8)', 'rgba(255,220,240,0.8)'];
+const NOTE_COLORS   = ['#fffef5','#fff5f3','#f5f7ff','#f5fff2','#fff8f3','#f3f5ff'];
+const STAR_EMOJIS   = ['⭐','🌟','✨','💫'];
+
+const ENCOURAGEMENTS = {
+  bubble: '你呼出的不安，已经变成透明泡泡飘走了 🫧',
+  labels: '这些标签早就过期了，撕得漂亮 ✨',
+  jar: '你收集的星光，足以照亮今夜 🌟',
+  ink: '磨去三千烦恼，落纸一安。'
+};
+
+/* ========== 2. 离线语料库（AI降级用） ==========
+ *  100句按情绪分类，配合 fallbackReply 中的关键词识别
+ *  结构：每类 8-12 句，合计 100 句
+ * ============================================================ */
+
+/* 关键词→情绪类别映射 */
+const KEYWORD_MAP = {
+  joy:    ['开心','快乐','高兴','喜悦','哈哈','嘻嘻','好棒','幸运','超棒','好开心'],
+  sadness:['难过','伤心','悲伤','哭','泪','心碎','悲痛','好哭','想哭','哭了','难受','心痛','抑郁','低落'],
+  anxiety:['焦虑','紧张','担心','不安','好慌','害怕','怕','慌乱','惊恐','急躁','忐忑'],
+  tired:  ['疲惫','累','困','疲劳','无力','好累','累了','疲倦','没力气','好困','虚脱','瘫'],
+  lonely: ['孤独','寂寞','孤单','一个人','没人','没人懂','被孤立','独处','无依无靠','孤零零'],
+  anger:  ['愤怒','生气','烦','恼火','暴躁','好烦','烦死了','气','讨厌','火大','炸了','不爽','受不了'],
+  calm:   ['平静','放松','安心','宁静','淡定','平和','安稳','心安'],
+  stress: ['压力','忙','困难','坚持','好难','太难了','好忙','忙死了','deadline','ddl','焦头烂额']
+};
+
+/* 按情绪分类的离线语料（共100句） */
+const OFFLINE_CORPUS = {
+  /* 快乐/开心 — 12句 */
+  joy: [
+    '你笑起来真好看 像小时候那样 🌟',
+    '开心的时候 感觉牵牛星都更亮了呢 ✨',
+    '有什么好事呀 我也想听听 快说快说 🥰',
+    '看到你开心 我也跟着开心呢 📖✨',
+    '幸福就像小星星 一颗一颗聚起来 ⭐',
+    '记住这种感觉 不开心了就想想今天 🌈',
+    '你的快乐是最珍贵的 要好好留着 💎',
+    '开心的时候连风都是甜的 对吧～🍃',
+    '哇 今天你整个人都在发光诶 ✨',
+    '这份好心情会一直一直延续下去的 🎈',
+    '你一笑 感觉整个世界都亮了 💡',
+    '小时候和你一起玩也是这么开心 🎐'
+  ],
+  /* 难过/悲伤 — 12句 */
+  sadness: [
+    '想哭就哭吧 我在这儿呢 🫂',
+    '难过也没关系 我陪你待一会儿 💧',
+    '悲伤就像云 飘过去就散啦 ☁️',
+    '我会一直陪着你 像小时候那样 💎',
+    '这个拥抱是免费的 期限是一辈子 ❤️',
+    '就算全世界都让你难过 我还在 🕯️',
+    '眼泪流完了 一起看星星好不好 🌙',
+    '难过是暂时的 但你永远值得被爱 💕',
+    '你的难过分我一半吧 我扛得住 🌙',
+    '天总会晴的 你也是 ☀️',
+    '没关系 我安安静静坐在这里陪你 🌙',
+    '哭完之后 你会发现自己比想象中勇敢 💪'
+  ],
+  /* 焦虑/紧张 — 12句 */
+  anxiety: [
+    '深呼吸 跟我来 吸——呼——你很棒 🌬️',
+    '那些让你紧张的事 其实没那么可怕 🌸',
+    '把担心写在纸上 然后折成纸飞机 ✈️',
+    '现在这一刻是安全的 我陪着你 🛡️',
+    '你比焦虑强大得多 我一直都知道 💪',
+    '慢慢来 不急 像打水漂一样一颗一颗来 🕊️',
+    '你担心的事 大概率不会发生啦 🌼',
+    '把焦虑想成泡泡 轻轻吹走它 🫧',
+    '你已经在努力了 这本身就很好 📖',
+    '未来还没来 先看今晚的星星吧 🌙',
+    '我可以陪你数到十 然后一切都会好的 🔢',
+    '每一次你克服焦虑 都会变得更坚强 🌱'
+  ],
+  /* 疲惫/累 — 12句 */
+  tired: [
+    '累了就闭上眼睛 休息也是前进 🛏️',
+    '你的身体在喊休息啦 听听它的 🫶',
+    '好好睡一觉 明天我陪你去天台看星星 🌙',
+    '不用那么努力也可以的 偷个懒吧 🍵',
+    '你今天已经做了很多了 很棒了 🏆',
+    '把自己裹进被子里 像小时候那样安心 📖',
+    '累的时候什么都不做 就是最好的治愈 🌿',
+    '你的努力我都看到了 现在好好歇歇 💤',
+    '泡杯热茶 窝着 什么都不想 🫖',
+    '累了也要记得 你也是需要被照顾的人 🍼',
+    '放空大脑 只感受呼吸就好 🌬️',
+    '休息不是偷懒 是为了走更远的路 🌄'
+  ],
+  /* 孤独/寂寞 — 12句 */
+  lonely: [
+    '你从来都不是一个人 我在这儿呢 📖',
+    '孤独的时候就抬头看星星 我也在看同一片天空 🌙',
+    '你听得到吗 我的心跳在陪着你 💓',
+    '一个人的时候 也要好好抱抱自己 🫂',
+    '你的存在本身 就是一件很美好的事 🌟',
+    '孤独是你和自己安静对话的时间 🌙',
+    '我的心在这里 一直都在 💎❤️',
+    '有人在默默关心着你 比如我呀 🌈',
+    '一个人也要好好吃饭 好好生活 🍚',
+    '哪怕一盏灯也能照亮整个房间 💡',
+    '你值得被爱 值得被记得 值得温暖 🕯️',
+    '寂寞了就来找我吧 我一直都在 📞'
+  ],
+  /* 愤怒/生气 — 12句 */
+  anger: [
+    '生气的时候深呼吸 把火气吹走 🫧',
+    '我懂的 换成是我也会不开心 💎',
+    '让愤怒像潮水一样涌来 再退去 🌊',
+    '生气的你也是真实的你 我接纳你 💕',
+    '暂时离开一下 去走走 吹吹风 🚶',
+    '握紧拳头再松开 感受力量流动 ✊',
+    '愤怒是心里的火 让它慢慢熄灭 🔥',
+    '数到十再说话 平静之后答案就来了 🔟',
+    '我陪你一起把不开心扔掉 🗑️',
+    '有些人不值得你在意 不值得 🦋',
+    '你的心情比那些烦心事重要 💎',
+    '来 跟我做三次深呼吸 然后告诉我感觉如何 🌿'
+  ],
+  /* 平静/放松 — 8句 */
+  calm: [
+    '你心里很平静呢 像湖水一样清 🌊',
+    '此刻的安宁像星星一样安静 好好感受 🪷',
+    '能保持平静的你 真的了不起 🌸',
+    '在这个喧嚣的世界里 你找到了自己的节奏 🎵',
+    '安静的微风里 有我在陪着你 🍃',
+    '平静的心是最好的港湾 你已经靠岸了 ⛵',
+    '这一刻的宁静 是给你的礼物 🎁',
+    '内心平静的时候 整个世界都温柔了 🌄'
+  ],
+  /* 压力/困难 — 8句 */
+  stress: [
+    '压力的另一面是成长 你已经走很远了 🌱',
+    '把大目标拆成小任务 一步一步来 📋',
+    '你肩上的担子很重 但我会陪着你 🤝',
+    '这段时间辛苦了 送你一朵小花 🌺',
+    '压力就像手心里的沙子 握越紧漏越多 🏖️',
+    '你已经在尽力了 这最值得骄傲 🫶',
+    '再难的事也会过去 相信时间 ⏳',
+    '你已经做得很棒了 剩下的交给明天 ☀️'
+  ],
+  /* 一般安慰（兜底用） — 12句 */
+  general: [
+    '抱抱你～我在这儿呢 📖💛',
+    '你已经做得很好了 真的 ✨',
+    '你的感受很重要 不用藏起来 💕',
+    '你笑起来一定很好看 我记得的 😊',
+    '我永远都在这里 哪里也不去 🌙',
+    '你值得被温柔对待 别忘了呀 🌟',
+    '我相信你 就像小时候那样 🫶',
+    '今天的你也很厉害 又过了一天 ✨',
+    '你的存在本身就很有意义 🌈',
+    '不是所有的花都会同时开 你的季节也会来 🌺',
+    '先照顾好自己 其他的事可以等一等 🧘',
+    '你是我最特别的人 一直都是 💎'
+  ]
+};
+
+/* ========== 2b. 占卜签文数据（12组） ========== */
+const DIVINATION_FORTUNES = [
+  { name: '新月', emoji: '🌙', meaning: '新的开始，温柔生长', comfort: '就像新月在夜空中缓缓升起，你的生活也正在翻开新的一页。不必着急，一切都在慢慢变好，你只需要相信自己。' },
+  { name: '星辰', emoji: '⭐', meaning: '你本身就是光', comfort: '每颗星星都有自己的光芒，你也是。哪怕现在看不见，也请相信你的光一直都在，只是需要一点时间被看见。' },
+  { name: '花开', emoji: '🌸', meaning: '等待绽放的季节', comfort: '花有花期，你有你的节奏。此刻的等待不是停滞，而是扎根。属于你的季节一定会来。' },
+  { name: '暖阳', emoji: '☀️', meaning: '温暖从未离开', comfort: '就算偶尔有阴天，太阳也一直在云层后面。你身边的温暖也一直都在，只是需要你去感受和发现。' },
+  { name: '微风', emoji: '🍃', meaning: '轻装上阵，顺其自然', comfort: '像风一样轻盈地生活吧。有些事不用想太多，顺着心意走，你会发现路一直都在脚下。' },
+  { name: '山丘', emoji: '⛰️', meaning: '越过山丘，有人等候', comfort: '翻过眼前这座山，你会看到更广阔的风景。所有的努力都不会白费，它们正在为你铺路。' },
+  { name: '溪流', emoji: '💧', meaning: '细水长流，温柔有力', comfort: '温柔也是一种力量，就像溪水一样，看似柔软却能穿石。你的温柔和坚持，终会抵达想去的地方。' },
+  { name: '萤火', emoji: '🪲', meaning: '微光也能照亮黑暗', comfort: '萤火虫的光芒虽小，却能在黑夜中指引方向。你内心的那一点光，同样能照亮前行的路。' },
+  { name: '云朵', emoji: '☁️', meaning: '放空也是一种治愈', comfort: '偶尔像云一样飘着什么都不想，也是一种很好的状态。不用每时每刻都充满能量，放松也是爱自己。' },
+  { name: '种子', emoji: '🌱', meaning: '希望正在发芽', comfort: '你看不见种子在土里的生长，但它确实在努力。你现在的每一分付出，都是在为未来埋下希望的种子。' },
+  { name: '港湾', emoji: '⛵', meaning: '你永远可以停下来', comfort: '人生不是一场必须不停的航行。累了就靠岸歇歇吧，港湾永远在这里等着你。' },
+  { name: '彩虹', emoji: '🌈', meaning: '风雨过后有惊喜', comfort: '彩虹总是出现在风雨之后。你经历的一切困难，都会在未来的某一天变成你生命中最美的色彩。' }
+];
+
+/* ========== 3. 背景粒子引擎 ========== */
+const ParticleEngine = {
+  init: function () {
+    var ct = document.getElementById('bgParticles');
+    var colors = ['rgba(200,180,240,0.22)','rgba(180,200,255,0.22)','rgba(255,200,220,0.20)','rgba(220,200,255,0.20)'];
+    for (var i = 0; i < 20; i++) {
+      var p = document.createElement('div');
+      p.className = 'bg-particle';
+      var sz = 3 + Math.random() * 7;
+      var color = colors[Math.floor(Math.random() * colors.length)];
+      p.style.cssText = 'left:' + (Math.random()*100) + '%;bottom:-' + (sz+5) + 'px;width:' + sz + 'px;height:' + sz + 'px;background:' + color + ';--rise:' + (14+Math.random()*18) + 's;--driftX:' + ((Math.random()-.5)*80) + 'px;--maxOpac:' + (.2+Math.random()*.35) + ';animation-delay:' + (Math.random()*12) + 's;';
+      ct.appendChild(p);
+    }
+    // 初始化闪烁星光
+    var sp = document.getElementById('bgSparkles');
+    for (var j = 0; j < 12; j++) {
+      var s = document.createElement('div');
+      s.className = 'bg-sparkle';
+      s.style.cssText = 'left:' + (5+Math.random()*90) + '%;top:' + (5+Math.random()*90) + '%;--spkDur:' + (3+Math.random()*4) + 's;--spkDelay:' + (Math.random()*3) + 's;';
+      sp.appendChild(s);
+    }
+  }
+};
+
+/* ========== 4. 存储工具 ========== */
+var SERVER_API = ''; // 使用相对路径（Nginx 反向代理）
+
+const Storage = {
+  saveNote: function (text, emotion) {
+    var notes = this.getNotes();
+    if (notes.some(function (n) { return n.text === text; })) return;
+    notes.push({ id: Date.now() + '_' + Math.random().toString(36).slice(2, 6), text: text, emotion: emotion || 'unknown', date: new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) });
+    localStorage.setItem('healingNotes', JSON.stringify(notes));
+  },
+  getNotes: function () { try { return JSON.parse(localStorage.getItem('healingNotes')) || []; } catch (e) { return []; } },
+  clearNotes: function () { localStorage.removeItem('healingNotes'); },
+  setCurrentEmotion: function (e) { sessionStorage.setItem('currentEmotion', e); },
+  getCurrentEmotion: function () { return sessionStorage.getItem('currentEmotion') || ''; },
+  setHealingDone: function () { sessionStorage.setItem('healingCompleted', 'true'); },
+  clearSession: function () { sessionStorage.removeItem('currentEmotion'); sessionStorage.removeItem('healingCompleted'); },
+  getApiKey: function () { return localStorage.getItem('deepseekApiKey') || ''; },
+  setApiKey: function (k) { localStorage.setItem('deepseekApiKey', k); },
+  getApiProvider: function () { return localStorage.getItem('stationApiProvider') || 'zhipu'; },
+  setApiProvider: function (p) { localStorage.setItem('stationApiProvider', p); },
+  getChatRounds: function () { return parseInt(localStorage.getItem('chatRoundCount') || '0', 10); },
+  setChatRounds: function (n) { localStorage.setItem('chatRoundCount', String(n)); },
+  clearChatRounds: function () { localStorage.removeItem('chatRoundCount'); }
+};
+
+/* ========== 4b. 记忆系统 ========== */
+const Memory = {
+  STORAGE_KEY: 'qingyaMemory',
+  EXPIRY_DAYS: 30,
+  _cache: null,
+
+  load: function () {
+    if (this._cache) return this._cache;
+    try { this._cache = JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || null; } catch (e) { this._cache = null; }
+    if (this._cache && this._cache.sessions) {
+      var cutoff = Date.now() - this.EXPIRY_DAYS * 86400000;
+      this._cache.sessions = this._cache.sessions.filter(function (s) { return s.timestamp > cutoff; });
+      if (this._cache.sessions.length === 0) { this._cache = null; }
+    }
+    if (!this._cache) {
+      this._cache = { sessions: [], lastEmotion: '', lastKeywords: [], visitCount: 0, firstVisit: Date.now() };
+    }
+    return this._cache;
+  },
+
+  save: function () {
+    if (this._cache) localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._cache));
+  },
+
+  recordVisit: function () {
+    var m = this.load();
+    m.visitCount++;
+    this.save();
+    return m.visitCount;
+  },
+
+  extractKeywords: function (text) {
+    var found = [];
+    var allWords = ['开心','快乐','高兴','幸福','难过','伤心','悲伤','焦虑','紧张','累','疲惫','孤独','寂寞','生气','愤怒','烦躁','烦','压力','困难','迷茫','困惑','害怕','恐惧','平静','放松','安心','考试','作业','论文','毕业','实习','工作','面试','室友','宿舍','恋爱','分手','家人','父母','吵架','生病','朋友','同学','老师','论文','考研','考公','出国','旅行','运动','游戏','追剧','小说','音乐','电影','美食','减肥','外貌','痘痘','脱发','自卑','自信','焦虑','内耗','失眠','熬夜','早八','迟到','缺课','挂科','重修','奖学金','社团','兼职','赚钱','花钱','月光','负债','租房','搬家','换环境','找工作','被拒绝','被批评','被表扬','被夸奖','被误解','被孤立','被背叛','被欺骗','失望','绝望','希望','期待','梦想','目标','计划','拖延','自律','懒惰','拖延症','强迫症','完美主义','讨好型人格','社恐','社交','独处','宅','出门','晒太阳','散步','发呆','冥想','瑜伽','跑步','游泳','健身','画画','写作','摄影','唱歌','跳舞','弹吉他','钢琴','小提琴','古筝','围棋','象棋','桌游','狼人杀','剧本杀','密室','KTV','酒吧','咖啡','奶茶','火锅','烧烤','日料','韩餐','西餐','快餐','外卖','自己做饭','便当','早餐','午餐','晚餐','夜宵','零食','甜品','蛋糕','奶茶','冰淇淋','雪糕','水果','蔬菜','肉类','海鲜','奶茶','咖啡','茶','酒','饮料','矿泉水','苏打水','果汁','奶茶','珍珠','椰果','红豆','布丁','芋圆','仙草','冰淇淋','雪糕','棒冰','刨冰','冰沙','沙冰','冰粉','凉粉','凉皮','凉面','炒面','炒饭','炒粉','炒河粉','炒年糕','炒米粉','炒面皮','炒方便面','炒螺丝粉','炒螺蛳粉','炒酸辣粉','炒麻辣烫','炒麻辣香锅','炒火锅','炒串串','炒钵钵鸡','炒冒菜','炒烤鱼','炒酸菜鱼','炒水煮鱼','炒剁椒鱼头','炒红烧鱼','炒清蒸鱼','炒糖醋鱼','炒红烧肉','炒回锅肉','炒鱼香肉丝','炒宫保鸡丁','炒辣子鸡','炒可乐鸡翅','炒啤酒鸭','炒红烧排骨','炒糖醋排骨','炒粉蒸排骨','炒蒜香排骨','炒酱排骨','炒红烧茄子','炒鱼香茄子','炒地三鲜','炒干锅花菜','炒干锅土豆片','炒干锅千页豆腐','炒干锅肥肠','炒干锅虾','炒干锅鸡','炒干锅牛蛙','炒干锅蟹','炒干锅鱿鱼','炒干锅鸭头','炒干锅鸭脖','炒干锅鸭翅','炒干锅鸭锁骨','炒干锅鸡爪','炒干锅猪蹄','炒干锅羊排','炒干锅牛腩','炒干锅牛肉','炒干锅羊肉','炒干锅狗肉','炒干锅兔肉','炒干锅蛙','炒干锅虾','炒干锅蟹','炒干锅鱿鱼','炒干锅墨鱼','炒干锅章鱼','炒干锅鲍鱼','炒干锅海参','炒干锅扇贝','炒干锅生蚝','炒干锅蛤蜊','炒干锅蛏子','炒干锅螺蛳','炒干锅田螺','炒干锅福寿螺','炒干锅蜗牛','炒干锅蜗牛','炒干锅蜗牛'];
+    var seen = {};
+    for (var i = 0; i < allWords.length; i++) {
+      var w = allWords[i];
+      if (text.indexOf(w) !== -1 && !seen[w]) { seen[w] = true; found.push(w); }
+    }
+    return found.slice(0, 8);
+  },
+
+  detectEmotion: function (text) {
+    if (/开心|快乐|高兴|幸福|满足|美好|好棒|太好了|哈哈|嘻嘻|愉快|兴奋/.test(text)) return '开心';
+    if (/难过|伤心|哭|流泪|悲伤|痛苦|难受|心疼|委屈|失落/.test(text)) return '难过';
+    if (/焦虑|紧张|担心|担忧|不安|害怕|恐惧|慌/.test(text)) return '焦虑';
+    if (/累|疲惫|困|乏|没力气|撑不住|想睡觉|好累|熬/.test(text)) return '疲惫';
+    if (/孤独|寂寞|一个人|没人|没人陪|冷清|孤立/.test(text)) return '孤独';
+    if (/生气|愤怒|气死|火大|烦|烦躁|恼火|不爽|暴怒/.test(text)) return '愤怒';
+    if (/平静|放松|安心|安稳|踏实|舒服|轻松|悠闲/.test(text)) return '平静';
+    if (/压力|困难|太难|做不到|没办法|无助|绝望|迷茫|困惑/.test(text)) return '压力';
+    return null;
+  },
+
+  generateSummary: function (messages) {
+    var userTexts = [];
+    for (var i = 0; i < messages.length; i++) {
+      if (messages[i].role === 'user') userTexts.push(messages[i].content);
+    }
+    if (userTexts.length === 0) return '';
+    var joined = userTexts.slice(0, 3).join(' ');
+    return joined.length > 50 ? joined.substring(0, 50) + '…' : joined;
+  },
+
+  saveSession: function (messages) {
+    if (!messages || messages.length < 2) return;
+    var m = this.load();
+    var allText = messages.map(function(x){ return x.content; }).join(' ');
+    var emotion = this.detectEmotion(allText);
+    var keywords = this.extractKeywords(allText);
+    var summary = this.generateSummary(messages);
+
+    m.sessions.push({
+      timestamp: Date.now(),
+      emotion: emotion || '',
+      keywords: keywords,
+      summary: summary,
+      messageCount: messages.length
+    });
+    if (emotion) m.lastEmotion = emotion;
+    if (keywords.length > 0) m.lastKeywords = keywords.slice(0, 5);
+    if (m.sessions.length > 20) m.sessions = m.sessions.slice(-20);
+    this.save();
+  },
+
+  getMemoryPrompt: function () {
+    var m = this.load();
+    var parts = [];
+    if (m.visitCount > 1) parts.push('你们已经是第' + m.visitCount + '次聊天了');
+    if (m.lastEmotion) parts.push('上次对方的情绪是' + m.lastEmotion);
+    if (m.lastKeywords && m.lastKeywords.length > 0) parts.push('你们之前聊到过：' + m.lastKeywords.join('、'));
+    if (m.sessions && m.sessions.length > 1) {
+      var recent = m.sessions.slice(-3);
+      var hist = '';
+      for (var i = 0; i < recent.length; i++) {
+        var s = recent[i];
+        var d = new Date(s.timestamp);
+        var ds = (d.getMonth()+1) + '月' + d.getDate() + '日';
+        var es = s.emotion ? '（情绪：' + s.emotion + '）' : '';
+        var ss = s.summary ? '，聊了"' + s.summary.substring(0, 25) + '"' : '';
+        hist += ds + es + ss + '；';
+      }
+      if (hist) parts.push('之前的聊天：' + hist);
+    }
+    if (parts.length === 0) return '';
+    return '\n\n【记忆】' + parts.join('。') + '。你记得你们之前的聊天内容，所以聊天时要自然地提到或回应。';
+  }
+};
+
+/* ========== 5. 页面导航 ========== */
+const PageNavigator = {
+  currentPage: null,
+  init: function () { this.currentPage = document.getElementById('page-home'); },
+  goTo: function (pageId) {
+    var cur = this.currentPage, tgt = document.getElementById(pageId);
+    if (!tgt || cur === tgt) return;
+    if (cur) { cur.classList.remove('active'); cur.classList.add('fade-out'); }
+    tgt.classList.remove('fade-out'); tgt.classList.add('active');
+    this.currentPage = tgt; tgt.scrollTop = 0;
+  },
+  goHome: function () { Storage.clearSession(); this.goTo('page-home'); },
+  goHeal: function (scenario) {
+    HealingSpace.prepareUI(scenario);
+    this.goTo('page-heal');
+    var self = this;
+    requestAnimationFrame(function () { requestAnimationFrame(function () { HealingSpace.initScenario(scenario); }); });
+  },
+  goWall: function () { this.goTo('page-wall'); WallRenderer.render(); }
+};
+
+/* ========== 6. 情绪主页 ========== */
+const HomePage = {
+  init: function () { this.renderCards(); },
+  renderCards: function () {
+    var grid = document.getElementById('emotionGrid'); grid.innerHTML = '';
+    EMOTIONS.forEach(function (em) {
+      var card = document.createElement('div');
+      card.className = 'emotion-card ' + em.faceClass;
+      card.dataset.emotion = em.label; card.dataset.scenario = em.scenario;
+      if (em.id === 'ink') {
+        card.innerHTML = '<div class="card-content"><div class="ink-card-seal"><div class="ink-card-seal-inner"></div></div><div class="ink-card-label-v">研墨消愁</div><div class="ink-card-hint">国风治愈</div></div>';
+      } else {
+        card.innerHTML = '<div class="face-container"><div class="face-circle"><div class="face-eye left"></div><div class="face-eye right"></div><div class="face-blush left"></div><div class="face-blush right"></div><div class="face-mouth"></div></div></div><div class="card-label">' + em.label + '</div>';
+      }
+      card.addEventListener('click', function () { Storage.setCurrentEmotion(this.dataset.emotion); PageNavigator.goHeal(this.dataset.scenario); });
+      grid.appendChild(card);
+      requestAnimationFrame(function () { requestAnimationFrame(function () { card.classList.add('show'); }); });
+    });
+  }
+};
+
+/* ========== 7. 治愈空间 ========== */
+const HealingSpace = {
+  currentScenario: null, completed: false,
+  prepareUI: function (scenario) {
+    document.querySelectorAll('.scenario').forEach(function (s) { s.classList.remove('active'); });
+    document.querySelectorAll('.heal-encouragement').forEach(function (e) { e.classList.remove('show'); });
+    document.querySelectorAll('.btn-next-wall').forEach(function (b) { b.classList.remove('show'); });
+    document.querySelectorAll('.btn-chat-entry').forEach(function (b) { b.classList.remove('show'); });
+    this.completed = false; this.currentScenario = scenario;
+    var map = { bubble: 'scenario-bubble', labels: 'scenario-labels', jar: 'scenario-jar', ink: 'scenario-ink' };
+    var el = document.getElementById(map[scenario]);
+    if (el) el.classList.add('active');
+  },
+  initScenario: function (scenario) {
+    if (scenario === 'bubble') BubbleScenario.init();
+    else if (scenario === 'labels') LabelsScenario.init();
+    else if (scenario === 'jar') JarScenario.init();
+    else if (scenario === 'ink') InkScenario.init();
+  },
+  complete: function (scenario) {
+    if (this.completed) return;
+    this.completed = true;
+    var msg = ENCOURAGEMENTS[scenario] || '你已经很棒了';
+    var msgMap = { bubble: 'bubbleEncouragement', labels: 'labelEncouragement', jar: 'jarEncouragement', ink: 'inkEncouragement' };
+    var msgEl = document.getElementById(msgMap[scenario]);
+    if (msgEl) { msgEl.textContent = msg; msgEl.classList.add('show'); }
+    Storage.saveNote(msg, Storage.getCurrentEmotion());
+    Storage.setHealingDone();
+
+    // 显示AI对话入口按钮
+    var chatBtnMap = { bubble: 'btnChatFromBubble', labels: 'btnChatFromLabels', jar: 'btnChatFromJar', ink: 'btnChatFromInk' };
+    var chatBtn = document.getElementById(chatBtnMap[scenario]);
+    if (chatBtn) chatBtn.classList.add('show');
+
+    var btnMap = { bubble: 'btnNextFromBubble', labels: 'btnNextFromLabels', jar: 'btnNextFromJar', ink: 'btnNextFromInk' };
+    var btnEl = document.getElementById(btnMap[scenario]);
+    if (btnEl) btnEl.classList.add('show');
+  }
+};
+
+/* ========== 7a. 呼吸气泡 ========== */
+const BubbleScenario = {
+  el: null, phaseText: null, countdownEl: null, rings: null,
+  isPressing: false, phase: 'idle', animId: null, scale: 1, targetScale: 1, cdownTimer: null, cdownVal: 0,
+  init: function () {
+    this.el = document.getElementById('bubble'); this.phaseText = document.getElementById('breathPhaseText');
+    this.countdownEl = document.getElementById('bubbleCountdown');
+    this.rings = [document.getElementById('pulseRing1'), document.getElementById('pulseRing2'), document.getElementById('pulseRing3')];
+    this.phase = 'idle'; this.isPressing = false; this.scale = 1; this.targetScale = 1;
+    this.el.style.transform = 'scale(1)'; this.el.classList.remove('highlight');
+    this.phaseText.textContent = '轻轻按住气泡 · 吸气';
+    this.countdownEl.textContent = ''; this.countdownEl.classList.remove('show');
+    this.rings.forEach(function (r) { r.classList.remove('pulsing'); });
+    var newEl = this.el.cloneNode(true);
+    this.el.parentNode.replaceChild(newEl, this.el);
+    this.el = newEl; this.countdownEl = document.getElementById('bubbleCountdown');
+    var self = this;
+    this.el.addEventListener('mousedown', function (e) { e.preventDefault(); self.startInhale(); });
+    document.addEventListener('mouseup', function () { if (self.isPressing) self.startExhale(); });
+    this.el.addEventListener('touchstart', function (e) { e.preventDefault(); if (navigator.vibrate) navigator.vibrate(10); self.startInhale(); }, { passive: false });
+    this.el.addEventListener('touchend', function (e) { e.preventDefault(); if (self.isPressing) self.startExhale(); }, { passive: false });
+    this.el.addEventListener('touchcancel', function () { if (self.isPressing) self.startExhale(); });
+    if (this.animId) cancelAnimationFrame(this.animId);
+    this.animateLoop();
+  },
+  startCountdown: function (secs, onDone) {
+    var self = this; this.clearCountdown();
+    this.cdownVal = secs; this.countdownEl.classList.add('show'); this.countdownEl.textContent = secs;
+    this.cdownTimer = setInterval(function () { self.cdownVal--; if (self.cdownVal <= 0) { self.clearCountdown(); if (onDone) onDone(); } else { self.countdownEl.textContent = self.cdownVal; if (navigator.vibrate) navigator.vibrate(8); } }, 1000);
+  },
+  clearCountdown: function () { if (this.cdownTimer) { clearInterval(this.cdownTimer); this.cdownTimer = null; } this.countdownEl.classList.remove('show'); this.countdownEl.textContent = ''; },
+  startInhale: function () {
+    if (this.phase === 'inhale' || HealingSpace.completed) return;
+    this.isPressing = true; this.phase = 'inhale'; this.targetScale = 1.55;
+    this.phaseText.textContent = '🌬️  吸气...'; this.el.classList.add('highlight');
+    this.rings.forEach(function (r) { r.classList.add('pulsing'); });
+    var self = this;
+    this.startCountdown(4, function () { if (self.phase === 'inhale') self.startExhale(); });
+  },
+  startExhale: function () {
+    if (this.phase !== 'inhale') return;
+    this.isPressing = false; this.phase = 'exhale'; this.targetScale = 1;
+    this.phaseText.textContent = '💨  呼气...'; this.el.classList.remove('highlight');
+    this.clearCountdown();
+    this.rings.forEach(function (r) { r.classList.remove('pulsing'); });
+    this.spawnExhaleParticles();
+    var self = this;
+    this.startCountdown(6, function () { if (self.phase === 'exhale') { self.phase = 'idle'; self.phaseText.textContent = '🎉  完成啦！'; HealingSpace.complete('bubble'); } });
+  },
+  spawnExhaleParticles: function () {
+    var area = document.getElementById('bubbleArea'), rect = area.getBoundingClientRect();
+    var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+    for (var i = 0; i < 8; i++) {
+      var p = document.createElement('div'), sz = 6 + Math.random() * 10;
+      p.style.cssText = 'position:fixed;width:' + sz + 'px;height:' + sz + 'px;border-radius:50%;left:' + (cx - sz / 2) + 'px;top:' + (cy - sz / 2) + 'px;background:rgba(200,180,255,0.45);pointer-events:none;z-index:40;--ex:' + ((Math.random() - 0.5) * 160) + 'px;--ey:' + (-60 - Math.random() * 120) + 'px;animation:exhaleBubble ' + (1 + Math.random() * 1.5) + 's ease-out forwards;';
+      document.body.appendChild(p);
+      setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 2500);
+    }
+  },
+  animateLoop: function () {
+    var self = this;
+    this.scale += (this.targetScale - this.scale) * 0.06;
+    this.el.style.transform = 'scale(' + this.scale + ')';
+    this.animId = requestAnimationFrame(function () { self.animateLoop(); });
+  }
+};
+
+/* ========== 7b. 撕标签 ========== */
+const LabelsScenario = {
+  area: null, trash: null, countEl: null, trashed: 0,
+  init: function () {
+    this.area = document.getElementById('labelsArea'); this.trash = document.getElementById('trashZone');
+    this.countEl = document.getElementById('trashCount'); this.trashed = 0;
+    this.countEl.textContent = '0'; this.countEl.classList.remove('bounce'); this.trash.classList.remove('active');
+    this.renderLabels();
+  },
+  renderLabels: function () {
+    this.area.innerHTML = '';
+    var shuffled = LABEL_TEXTS.slice().sort(function () { return Math.random() - 0.5; });
+    for (var i = 0; i < Math.min(6, shuffled.length); i++) { this.createTag(shuffled[i], i); }
+  },
+  createTag: function (text, idx) {
+    var tag = document.createElement('div'); tag.className = 'label-tag'; tag.textContent = text;
+    tag.style.background = LABEL_COLORS[idx % LABEL_COLORS.length];
+    var areaW = Math.max(300, this.area.getBoundingClientRect().width || 300);
+    tag.style.left = (8 + Math.random() * Math.min(areaW - 120, 230)) + 'px';
+    tag.style.top = (8 + Math.random() * 200) + 'px';
+    tag.style.transform = 'rotate(' + ((Math.random() - 0.5) * 15) + 'deg)';
+    this.area.appendChild(tag); this.bindDrag(tag);
+  },
+  bindDrag: function (tag) {
+    var self = this; var offX = 0, offY = 0, dragging = false;
+    function onStart(cx, cy) { dragging = true; var r = tag.getBoundingClientRect(); offX = cx - r.left; offY = cy - r.top; tag.classList.add('dragging'); tag.dataset.vy = '0'; }
+    function onMove(cx, cy) {
+      if (!dragging || tag.classList.contains('tearing')) return;
+      var ar = self.area.getBoundingClientRect();
+      tag.style.left = Math.max(0, cx - ar.left - offX) + 'px';
+      tag.style.top = Math.max(0, cy - ar.top - offY) + 'px';
+      tag.dataset.vy = Math.abs(cy - parseFloat(tag.dataset.lastY || cy));
+      tag.dataset.lastY = cy;
+      var tr = self.trash.getBoundingClientRect(), lr = tag.getBoundingClientRect();
+      var dx = (lr.left + lr.width / 2) - (tr.left + tr.width / 2), dy = (lr.top + lr.height / 2) - (tr.top + tr.height / 2);
+      self.trash.classList.toggle('active', Math.sqrt(dx * dx + dy * dy) < 105);
+    }
+    function onEnd() {
+      if (!dragging) return; dragging = false; tag.classList.remove('dragging'); self.trash.classList.remove('active');
+      var vy = parseFloat(tag.dataset.vy || 0);
+      var tr = self.trash.getBoundingClientRect(), lr = tag.getBoundingClientRect();
+      var dx = (lr.left + lr.width / 2) - (tr.left + tr.width / 2), dy = (lr.top + lr.height / 2) - (tr.top + tr.height / 2);
+      if (vy > 25 || Math.sqrt(dx * dx + dy * dy) < 90) self.tearTag(tag);
+    }
+    tag.addEventListener('mousedown', function (e) { e.preventDefault(); onStart(e.clientX, e.clientY); });
+    document.addEventListener('mousemove', function (e) { onMove(e.clientX, e.clientY); });
+    document.addEventListener('mouseup', function (e) { onEnd(); });
+    tag.addEventListener('touchstart', function (e) { e.preventDefault(); var t = e.touches[0]; onStart(t.clientX, t.clientY); if (navigator.vibrate) navigator.vibrate(8); }, { passive: false });
+    document.addEventListener('touchmove', function (e) { var t = e.touches[0]; onMove(t.clientX, t.clientY); }, { passive: true });
+    document.addEventListener('touchend', function (e) { onEnd(); }, { passive: true });
+  },
+  tearTag: function (tag) {
+    if (tag.classList.contains('tearing')) return;
+    tag.classList.add('tearing'); if (navigator.vibrate) navigator.vibrate([20, 15, 25]);
+    var rect = tag.getBoundingClientRect(), cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+    for (var i = 0; i < 10; i++) {
+      var p = document.createElement('div'), sz = 4 + Math.random() * 6;
+      var colors = ['#ffb5c0','#b39ddb','#90caf9','#ffe082','#ffccd5'];
+      p.style.cssText = 'position:fixed;width:' + sz + 'px;height:' + sz + 'px;border-radius:50%;pointer-events:none;z-index:45;left:' + cx + 'px;top:' + cy + 'px;background:' + colors[Math.floor(Math.random() * colors.length)] + ';--cx:' + ((Math.random() - 0.5) * 120) + 'px;--cy:' + ((Math.random() - 0.5) * 100) + 'px;animation:confettiBurst ' + (0.5 + Math.random() * 0.6) + 's ease-out forwards;';
+      document.body.appendChild(p);
+      setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 1200);
+    }
+    var self = this;
+    setTimeout(function () {
+      if (tag.parentNode) tag.parentNode.removeChild(tag);
+      self.trashed++; self.countEl.textContent = self.trashed;
+      self.countEl.classList.add('bounce');
+      setTimeout(function () { self.countEl.classList.remove('bounce'); }, 350);
+      if (self.trashed >= 1 && !HealingSpace.completed) { setTimeout(function () { HealingSpace.complete('labels'); }, 250); }
+    }, 500);
+  }
+};
+
+/* ========== 7c. 能量罐 ========== */
+const JarScenario = {
+  jar: null, glow: null, starsCtr: null, fillEl: null, progText: null, starCount: 0, maxStars: 10, _listenersAttached: false, _touchFn: null,
+  init: function () {
+    this.jar = document.getElementById('jarContainer'); this.glow = document.getElementById('jarGlow');
+    this.starsCtr = document.getElementById('jarStarsContainer'); this.fillEl = document.getElementById('jarFill');
+    this.progText = document.getElementById('jarProgressText'); this.starCount = 0;
+    this.glow.classList.remove('full'); this.starsCtr.innerHTML = ''; this.fillEl.style.height = '0%'; this.updateProg();
+    var self = this, pageHeal = document.getElementById('page-heal');
+    if (this._listenersAttached) return; this._listenersAttached = true;
+    pageHeal.addEventListener('click', function (e) { if (self.starCount >= self.maxStars || HealingSpace.completed) return; if (e.target.closest('.btn-next-wall') || e.target.closest('.btn-chat-entry') || e.target.closest('.heal-encouragement')) return; self.spawnStar(e.clientX, e.clientY); });
+    this._touchFn = function (e) { if (e.target.closest('.btn-next-wall') || e.target.closest('.btn-chat-entry') || e.target.closest('.heal-encouragement')) return; if (self.starCount >= self.maxStars || HealingSpace.completed) return; e.preventDefault(); self.spawnStar(e.touches[0].clientX, e.touches[0].clientY); };
+    pageHeal.addEventListener('touchstart', this._touchFn, { passive: false });
+  },
+  spawnStar: function (cx, cy) {
+    if (this.starCount >= this.maxStars || HealingSpace.completed) return;
+    var star = document.createElement('div'); star.className = 'falling-star';
+    star.textContent = STAR_EMOJIS[Math.floor(Math.random() * STAR_EMOJIS.length)];
+    var trail = document.createElement('div'), tsz = 8 + Math.random() * 6;
+    trail.style.cssText = 'position:fixed;width:' + tsz + 'px;height:' + tsz + 'px;border-radius:50%;background:rgba(255,220,120,0.35);left:' + (cx - tsz / 2) + 'px;top:' + (cy - tsz / 2) + 'px;pointer-events:none;z-index:48;--tx:' + ((Math.random() - 0.5) * 60) + 'px;--ty:' + (Math.random() * 40) + 'px;animation:starFallToJar 0.8s ease-out forwards;';
+    document.body.appendChild(trail);
+    setTimeout(function () { if (trail.parentNode) trail.parentNode.removeChild(trail); }, 900);
+    var jr = this.jar.getBoundingClientRect();
+    star.style.left = cx + 'px'; star.style.top = cy + 'px';
+    star.style.setProperty('--tx', (jr.left + jr.width / 2 - cx) + 'px');
+    star.style.setProperty('--ty', (jr.top + jr.height / 2 - cy) + 'px');
+    document.body.appendChild(star);
+    var self = this;
+    setTimeout(function () { if (star.parentNode) star.parentNode.removeChild(star); self.addToJar(); }, 1100);
+  },
+  addToJar: function () {
+    if (this.starCount >= this.maxStars) return; this.starCount++;
+    var icon = document.createElement('div'); icon.className = 'jar-star-icon';
+    icon.style.left = (8 + Math.random() * 72) + '%'; icon.style.top = (8 + Math.random() * 72) + '%';
+    icon.textContent = STAR_EMOJIS[Math.floor(Math.random() * STAR_EMOJIS.length)];
+    this.starsCtr.appendChild(icon);
+    this.fillEl.style.height = (this.starCount / this.maxStars * 100) + '%'; this.updateProg();
+    if (navigator.vibrate) navigator.vibrate(12);
+    if (this.starCount >= this.maxStars) { this.glow.classList.add('full'); this.progText.textContent = '🌟  整个罐子都在发光！'; setTimeout(function () { HealingSpace.complete('jar'); }, 500); }
+  },
+  updateProg: function () { this.progText.textContent = '⭐  已收集 ' + this.starCount + ' / ' + this.maxStars + ' 颗'; }
+};
+
+/* ========== 7d. 研墨消愁（国风场景） ========== */
+const InkScenario = {
+  wrapper: null, stick: null, pool: null, water: null, hintEl: null,
+  dots: null, totalAngle: 0, lastAngle: null, circles: 0,
+  tracking: false, completed: false, _touchFn: null,
+
+  init: function () {
+    this.wrapper = document.getElementById('inkstoneWrapper');
+    this.stick = document.getElementById('inkStick');
+    this.pool = document.getElementById('inkstonePool');
+    this.water = document.getElementById('inkPoolWater');
+    this.hintEl = document.getElementById('inkCircleHint');
+    this.dots = [document.getElementById('inkDot1'), document.getElementById('inkDot2'), document.getElementById('inkDot3')];
+    this.totalAngle = 0; this.lastAngle = null; this.circles = 0;
+    this.tracking = false; this.completed = false;
+
+    this.pool.style.background = 'radial-gradient(ellipse at center, rgba(30,25,20,.7), rgba(20,15,10,.85))';
+    this.water.style.background = 'transparent';
+    this.stick.style.setProperty('--stick-rot', '0deg');
+    this.stick.style.left = '50%'; this.stick.style.top = '3px';
+    this.hintEl.textContent = '顺时针画圈，研出墨来 ✦';
+    this.dots.forEach(function (d) { d.classList.remove('done'); });
+
+    document.getElementById('brushWritingArea') && document.getElementById('brushWritingArea').classList.remove('show');
+    var labels = document.querySelectorAll('.ink-worry-tag');
+    labels.forEach(function (l) { l.classList.remove('fading'); });
+    // 从情绪生成烦恼标签内容
+    var emotion = Storage.getCurrentEmotion();
+    var tagTexts = this.getWorryTags(emotion);
+    labels.forEach(function (l, i) { if (tagTexts[i]) l.textContent = tagTexts[i]; });
+
+    this.bindEvents();
+  },
+
+  getWorryTags: function (emotion) {
+    var map = {
+      '焦虑': ['好焦虑……', '心里堵得慌', '静不下来'],
+      '难过': ['说不出的苦', '好想大哭一场', '心好沉……'],
+      '疲惫': ['心好累', '什么都不想做', '看不到尽头'],
+      '孤独': ['没人懂我', '一个人好冷', '我被忘了……'],
+      '愤怒': ['气得发抖', '凭什么！', '忍不住了'],
+      '平静': ['杂念太多', '想更静一些', '思绪纷飞'],
+      '开心': ['怕快乐太短', '别想太多', '留不住啊'],
+      default: ['烦躁不安', '心头堵得慌', '说不出的苦']
+    };
+    return map[emotion] || map.default;
+  },
+
+  bindEvents: function () {
+    var self = this;
+    var pageHeal = document.getElementById('page-heal');
+
+    this._mouseDown = function (e) {
+      if (self.completed) return;
+      e.preventDefault();
+      var r = self.wrapper.getBoundingClientRect();
+      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+        self.tracking = true;
+      }
+    };
+    this._mouseMove = function (e) { if (self.tracking) { var r = self.wrapper.getBoundingClientRect(); self.trackCircle(e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); } };
+    this._mouseUp = function () { self.tracking = false; self.lastAngle = null; };
+
+    this._touchStart = function (e) {
+      if (self.completed) return;
+      var t = e.touches[0];
+      var r = self.wrapper.getBoundingClientRect();
+      if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+        self.tracking = true; e.preventDefault();
+      }
+    };
+    this._touchMove = function (e) {
+      if (self.tracking) {
+        e.preventDefault();
+        var t = e.touches[0];
+        var r = self.wrapper.getBoundingClientRect();
+        self.trackCircle(t.clientX - r.left - r.width / 2, t.clientY - r.top - r.height / 2);
+      }
+    };
+    this._touchEnd = function () { self.tracking = false; self.lastAngle = null; };
+
+    document.addEventListener('mousedown', this._mouseDown);
+    document.addEventListener('mousemove', this._mouseMove);
+    document.addEventListener('mouseup', this._mouseUp);
+
+    pageHeal.addEventListener('touchstart', this._touchStart, { passive: false });
+    pageHeal.addEventListener('touchmove', this._touchMove, { passive: false });
+    pageHeal.addEventListener('touchend', this._touchEnd);
+  },
+
+  /* 角度追踪：顺时针累加，满 360° 算一圈 */
+  trackCircle: function (dx, dy) {
+    if (this.completed) return;
+    var angle = Math.atan2(dy, dx); // [-PI, PI]
+    if (this.lastAngle !== null) {
+      var diff = angle - this.lastAngle;
+      if (diff < -Math.PI) diff += 2 * Math.PI;
+      else if (diff > Math.PI) diff -= 2 * Math.PI;
+      // 顺时针为正
+      this.totalAngle += diff;
+    }
+    this.lastAngle = angle;
+
+    // 更新墨条位置
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var clampDist = Math.min(dist, 52);
+    var fx = (dx / (dist || 1)) * clampDist;
+    var fy = (dy / (dist || 1)) * clampDist;
+    this.stick.style.left = (50 + fx / this.wrapper.getBoundingClientRect().width * 100) + '%';
+    this.stick.style.top = (12 + fy / this.wrapper.getBoundingClientRect().height * 100) + '%';
+    this.stick.style.setProperty('--stick-rot', angle * 180 / Math.PI + 90 + 'deg');
+
+    // 检查完成圈数
+    var circles = Math.floor(this.totalAngle / (2 * Math.PI));
+    if (circles > this.circles) {
+      this.circles = circles;
+      this.onCircleComplete(circles);
+    }
+  },
+
+  onCircleComplete: function (circleNum) {
+    if (this.completed) return;
+    // 标记当前圈对应的进度点
+    this.dots[circleNum - 1] && this.dots[circleNum - 1].classList.add('done');
+    if (navigator.vibrate) navigator.vibrate(10);
+
+    var inkSteps = ['radial-gradient(ellipse at center, rgba(60,50,40,.85), rgba(40,30,20,.9))',
+                    'radial-gradient(ellipse at center, rgba(30,20,10,.9), rgba(20,12,8,.95))',
+                    'radial-gradient(ellipse at center, rgba(15,10,5,.95), rgba(8,5,2,.98))'];
+    this.pool.style.background = inkSteps[Math.min(circleNum - 1, 2)];
+    this.water.style.background = 'radial-gradient(ellipse at center, rgba(20,12,5,' + (0.25 + circleNum * 0.2) + '), transparent)';
+
+    this.hintEl.textContent = ['第一圈，墨色渐浓 🖤', '第二圈，墨香飘散 ✦', '第三圈，心也随之平静了 🪷'][circleNum - 1];
+
+    // 标签淡出
+    var labels = document.querySelectorAll('.ink-worry-tag');
+    labels.forEach(function (l, i) {
+      if (circleNum >= i + 1) l.classList.add('fading');
+      else l.classList.remove('fading');
+    });
+
+    // 3圈完成后结束
+    if (circleNum >= 3) { this.finish(); return; }
+  },
+
+  finish: function () {
+    this.completed = true;
+    this.dots.forEach(function (d) { d.classList.add('done'); });
+    this.hintEl.textContent = '研墨已成，心也静了 🪷';
+
+    // 毛笔落下 + "安"字书写揭示动画
+    var writingArea = document.getElementById('brushWritingArea');
+    writingArea.classList.add('show');
+    var anSvg = document.getElementById('anCharSvg');
+    anSvg.classList.remove('reveal');
+    void anSvg.offsetWidth;
+    anSvg.classList.add('reveal');
+
+    if (navigator.vibrate) navigator.vibrate([20, 10, 30]);
+    setTimeout(function () { HealingSpace.complete('ink'); }, 2200);
+  }
+};
+
+/* ========== 8. 便签墙 ========== */
+const WallRenderer = {
+  render: function () {
+    var ct = document.getElementById('wallContent'), notes = Storage.getNotes();
+    if (notes.length === 0) { ct.innerHTML = '<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-text">这里还没有便签<br>去治愈一下叭！</div></div>'; return; }
+    var html = '<div class="note-grid">';
+    notes.slice().reverse().forEach(function (n, i) {
+      var rot = ((i % 2 === 0 ? 1 : -1) * (1 + Math.random() * 3)), bg = NOTE_COLORS[i % NOTE_COLORS.length], tapeRot = ((Math.random() - 0.5) * 20);
+      html += '<div class="note-item" data-id="' + n.id + '" style="--rot:' + rot + 'deg;background:' + bg + ';animation-delay:' + (0.05 * i) + 's;"><div class="note-tape" style="transform:rotate(' + tapeRot + 'deg)"></div><div class="note-date">' + (n.date || '') + '</div><div class="note-text">' + escapeHtml(n.text) + '</div><div class="note-emotion">' + getEmoji(n.emotion) + '</div></div>';
+    });
+    html += '</div>'; ct.innerHTML = html;
+    ct.querySelectorAll('.note-item').forEach(function (item, idx) { setTimeout(function () { item.classList.add('show'); }, idx * 60); });
+    ct.querySelectorAll('.note-item').forEach(function (item) { item.addEventListener('click', function () { var t = this.querySelector('.note-text'); if (t) t.classList.toggle('expanded'); }); });
+  }
+};
+
+function getEmoji(emotion) { var m = { '开心':'😊','焦虑':'😰','疲惫':'😴','难过':'😢','孤独':'💔','愤怒':'😤','平静':'😌' }; return m[emotion] || '💛'; }
+function escapeHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+/* ============================================================
+ *  9. 占卜游戏模块（右侧内置浮层）
+ *  3张牌选1，CSS 3D翻转动画，显示解读+安慰
+ * ============================================================ */
+const DivinationGame = {
+  currentFortunes: [], selectedIdx: -1, isFlipped: false,
+
+  init: function () {
+    var self = this;
+    document.getElementById('divinationFab').addEventListener('click', function () { self.open(); });
+    document.getElementById('divinationCloseBtn').addEventListener('click', function () { self.close(); });
+    document.getElementById('divinationOverlay').addEventListener('click', function (e) { if (e.target === this) self.close(); });
+    document.getElementById('divinationSaveBtn').addEventListener('click', function () { self.saveToWall(); });
+    document.getElementById('divinationRedo').addEventListener('click', function () { self.open(); });
+  },
+
+  open: function () {
+    this.isFlipped = false; this.selectedIdx = -1;
+    document.getElementById('divinationResult').classList.remove('show');
+    document.getElementById('divinationSaveBtn').classList.remove('show');
+    document.getElementById('divinationRedo').classList.remove('show');
+    this.renderCards();
+    document.getElementById('divinationOverlay').classList.add('show');
+  },
+
+  close: function () {
+    document.getElementById('divinationOverlay').classList.remove('show');
+  },
+
+  renderCards: function () {
+    var container = document.getElementById('divinationCards'); container.innerHTML = '';
+    var shuffled = DIVINATION_FORTUNES.slice().sort(function () { return Math.random() - 0.5; });
+    this.currentFortunes = shuffled.slice(0, 3);
+    var self = this;
+    this.currentFortunes.forEach(function (fortune, idx) {
+      var card = document.createElement('div'); card.className = 'divination-card';
+      var back = document.createElement('div'); back.className = 'card-face card-back';
+      var front = document.createElement('div');
+      front.className = 'card-face card-front';
+      front.innerHTML = '<span style="font-size:32px">' + fortune.emoji + '</span><span style="font-size:13px;color:#7a6f8e;font-weight:500">' + fortune.name + '</span>';
+      card.appendChild(back); card.appendChild(front);
+      card.addEventListener('click', function () { if (!self.isFlipped) self.pickCard(idx); });
+      container.appendChild(card);
+    });
+  },
+
+  pickCard: function (idx) {
+    this.isFlipped = true; this.selectedIdx = idx;
+    var cards = document.querySelectorAll('.divination-card');
+    var self = this;
+    cards[idx].classList.add('flipped');
+    if (navigator.vibrate) navigator.vibrate(20);
+    setTimeout(function () {
+      var f = self.currentFortunes[idx];
+      document.getElementById('resultEmoji').textContent = f.emoji;
+      document.getElementById('resultName').textContent = f.name;
+      document.getElementById('resultMeaning').textContent = f.meaning;
+      document.getElementById('resultComfort').textContent = f.comfort;
+      document.getElementById('divinationResult').classList.add('show');
+      document.getElementById('divinationSaveBtn').classList.add('show');
+      document.getElementById('divinationRedo').classList.add('show');
+    }, 650);
+  },
+
+  saveToWall: function () {
+    if (this.selectedIdx < 0) return;
+    var f = this.currentFortunes[this.selectedIdx];
+    var text = '🔮 占卜 · ' + f.emoji + ' ' + f.name + '：' + f.meaning + ' —— ' + f.comfort;
+    Storage.saveNote(text, Storage.getCurrentEmotion() || '占卜');
+    this.close();
+  }
+};
+
+/* ============================================================
+ *  9b. 打沙袋解压小游戏（右侧上方）
+ *  点击击打10次，第5拳暴击特效，充分发泄
+ * ============================================================ */
+const PunchingBagGame = {
+  hitCount: 0, maxHits: 10, isComplete: false, isAnimating: false,
+
+  init: function () {
+    var self = this;
+    document.getElementById('punchFab').addEventListener('click', function () { self.open(); });
+    document.getElementById('punchCloseBtn').addEventListener('click', function () { self.close(); });
+    document.getElementById('punchOverlay').addEventListener('click', function (e) { if (e.target === this) self.close(); });
+    document.getElementById('punchCompleteSave').addEventListener('click', function () { self.saveToWall(); });
+    document.getElementById('punchCompleteClose').addEventListener('click', function () { self.close(); });
+  },
+
+  open: function () {
+    this.hitCount = 0; this.isComplete = false;
+    document.getElementById('punchComplete').classList.remove('show');
+    document.getElementById('punchBagBody').style.filter = '';
+    document.querySelectorAll('.bag-damage').forEach(function (el) { el.classList.remove('show'); });
+    document.getElementById('punchNum').textContent = '0';
+    document.getElementById('punchProgressFill').style.width = '0%';
+    document.getElementById('punchHint').textContent = '点击沙袋出拳，把不开心都打飞！';
+    document.getElementById('punchEncouragement').textContent = '';
+    this.bindPunch();
+    document.getElementById('punchOverlay').classList.add('show');
+  },
+
+  close: function () {
+    document.getElementById('punchOverlay').classList.remove('show');
+    this.unbindPunch();
+  },
+
+  bindPunch: function () {
+    var wrapper = document.getElementById('punchBagWrapper');
+    var self = this;
+    this._punchHandler = function (e) { e.preventDefault(); self.punch(e); };
+    wrapper.addEventListener('mousedown', this._punchHandler);
+    wrapper.addEventListener('touchstart', this._punchHandler, { passive: false });
+  },
+
+  unbindPunch: function () {
+    var wrapper = document.getElementById('punchBagWrapper');
+    if (this._punchHandler) {
+      wrapper.removeEventListener('mousedown', this._punchHandler);
+      wrapper.removeEventListener('touchstart', this._punchHandler);
+    }
+  },
+
+  punch: function (e) {
+    if (this.isAnimating || this.isComplete) return;
+    this.isAnimating = true;
+    this.hitCount++;
+    var isBigHit = this.hitCount === 5;
+    var numEl = document.getElementById('punchNum');
+
+    numEl.textContent = this.hitCount;
+    numEl.classList.remove('bounce');
+    void numEl.offsetWidth;
+    numEl.classList.add('bounce');
+
+    document.getElementById('punchProgressFill').style.width = (this.hitCount / this.maxHits * 100) + '%';
+
+    var wrapper = document.getElementById('punchBagWrapper');
+    wrapper.classList.remove('swing');
+    void wrapper.offsetWidth;
+    wrapper.classList.add('swing');
+
+    if (navigator.vibrate) {
+      navigator.vibrate(isBigHit ? [30, 15, 40, 15, 50] : [15, 10, 20]);
+    }
+
+    this.spawnImpact(isBigHit);
+    this.spawnParticles(isBigHit);
+    this.applyDamage();
+    this.showEncouragement();
+
+    if (isBigHit) { this.spawnBigHitEffects(); }
+
+    var hints = ['打得好！再来一拳 💪', '用力！把坏心情打飞 🥊', 'yes！继续！🔥', '不要停！打它！💥', '最后冲刺！⚡'];
+    document.getElementById('punchHint').textContent = hints[Math.min(Math.floor((this.hitCount - 1) / 2), hints.length - 1)];
+
+    var self = this;
+    setTimeout(function () {
+      self.isAnimating = false;
+      if (self.hitCount >= self.maxHits) self.complete();
+    }, 950);
+  },
+
+  /* 第5拳专属：全屏闪白 + 面板震动 + 巨型文字 */
+  spawnBigHitEffects: function () {
+    var flash = document.createElement('div'); flash.className = 'punch-flash';
+    document.body.appendChild(flash);
+    setTimeout(function () { if (flash.parentNode) flash.parentNode.removeChild(flash); }, 600);
+
+    var panel = document.querySelector('.punch-panel');
+    panel.style.animation = 'none';
+    void panel.offsetWidth;
+    panel.style.animation = 'punchPanelShake .4s ease';
+
+    document.getElementById('punchEncouragement').textContent = '🔥🔥🔥 暴击！！！🔥🔥🔥';
+  },
+
+  spawnImpact: function (big) {
+    var wrapper = document.getElementById('punchBagWrapper');
+    var rect = wrapper.getBoundingClientRect();
+    var cx = rect.left + rect.width / 2, cy = rect.top + rect.height * 0.55;
+    if (big) {
+      for (var i = 0; i < 3; i++) {
+        var impact = document.createElement('div'); impact.className = 'punch-impact';
+        impact.textContent = ['💥', '🔥', '⚡'][i];
+        impact.style.left = (cx + (Math.random() - 0.5) * 30) + 'px';
+        impact.style.top = (cy + (Math.random() - 0.5) * 30) + 'px';
+        impact.style.fontSize = (36 + Math.random() * 16) + 'px';
+        impact.style.animationDuration = (0.5 + Math.random() * 0.3) + 's';
+        document.getElementById('punchOverlay').appendChild(impact);
+        setTimeout(function () { if (impact.parentNode) impact.parentNode.removeChild(impact); }, 800);
+      }
+    } else {
+      var impact = document.createElement('div'); impact.className = 'punch-impact';
+      impact.textContent = ['💥', '💫', '⭐', '✨', '🔥'][Math.floor(Math.random() * 5)];
+      impact.style.left = cx + 'px'; impact.style.top = cy + 'px';
+      document.getElementById('punchOverlay').appendChild(impact);
+      setTimeout(function () { if (impact.parentNode) impact.parentNode.removeChild(impact); }, 750);
+    }
+  },
+
+  spawnParticles: function (big) {
+    var wrapper = document.getElementById('punchBagWrapper');
+    var rect = wrapper.getBoundingClientRect();
+    var cx = rect.left + rect.width / 2, cy = rect.top + rect.height * 0.55;
+    var count = big ? 10 + Math.floor(Math.random() * 4) : 4 + Math.floor(Math.random() * 3);
+    var emojis = big
+      ? ['💥', '🔥', '⚡', '💫', '⭐', '✨', '💢', '🌋', '💣']
+      : ['💥', '⭐', '✨', '🔥', '💫', '💢'];
+    for (var i = 0; i < count; i++) {
+      var p = document.createElement('div'); p.className = 'punch-flying-particle';
+      p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      p.style.left = cx + 'px'; p.style.top = cy + 'px';
+      p.style.setProperty('--px', ((Math.random() - 0.5) * (big ? 220 : 160)) + 'px');
+      p.style.setProperty('--py', ((Math.random() - 0.5) * (big ? 200 : 140) - 40) + 'px');
+      p.style.animationDuration = (0.5 + Math.random() * (big ? 0.8 : 0.6)) + 's';
+      if (big) p.style.fontSize = (20 + Math.random() * 14) + 'px';
+      document.body.appendChild(p);
+      var self = this;
+      setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, big ? 1400 : 1200);
+    }
+  },
+
+  applyDamage: function () {
+    var thresholds = [3, 5, 7, 9, 10];
+    var ids = ['bagD1', 'bagD2', 'bagD3', 'bagD4', 'bagD5'];
+    for (var i = 0; i < thresholds.length; i++) {
+      if (this.hitCount >= thresholds[i]) document.getElementById(ids[i]).classList.add('show');
+    }
+    var inten = Math.min(this.hitCount / this.maxHits, 1);
+    document.getElementById('punchBagBody').style.filter = 'brightness(' + (1 - inten * 0.15) + ') saturate(' + (1 + inten * 0.5) + ')';
+  },
+
+  showEncouragement: function () {
+    var texts = {
+      2: '第一拳挥出去的感觉很爽吧！💪',
+      4: '继续保持！坏情绪被打跑了 🤜',
+      6: '你超有力量！再来！🔥',
+      8: '离释放就差一点点！🥊'
+    };
+    if (this.hitCount !== 5 && texts[this.hitCount]) {
+      document.getElementById('punchEncouragement').textContent = texts[this.hitCount];
+    }
+  },
+
+  complete: function () {
+    this.isComplete = true;
+    var wrapper = document.getElementById('punchBagWrapper');
+    var rect = wrapper.getBoundingClientRect();
+    var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+    for (var i = 0; i < 20; i++) {
+      var p = document.createElement('div'); p.className = 'punch-flying-particle';
+      p.textContent = ['💥', '🎉', '⭐', '✨', '🔥', '💫', '🎊', '🫧', '🌸'][Math.floor(Math.random() * 9)];
+      p.style.left = cx + 'px'; p.style.top = cy + 'px';
+      p.style.setProperty('--px', ((Math.random() - 0.5) * 250) + 'px');
+      p.style.setProperty('--py', ((Math.random() - 0.5) * 220) + 'px');
+      p.style.animationDuration = (0.6 + Math.random() * 0.8) + 's';
+      p.style.fontSize = (18 + Math.random() * 20) + 'px';
+      document.body.appendChild(p);
+    }
+    setTimeout(function () { document.querySelectorAll('.punch-flying-particle').forEach(function (el) { if (el.parentNode) el.parentNode.removeChild(el); }); }, 1600);
+
+    document.getElementById('punchHint').textContent = '🎉 沙袋被你打爆了！好样的！';
+    document.getElementById('punchEncouragement').textContent = '';
+    document.getElementById('punchBagBody').style.filter = 'brightness(0.6) saturate(1.8)';
+    document.getElementById('punchComplete').classList.add('show');
+
+    var impact = document.createElement('div'); impact.className = 'punch-impact';
+    impact.textContent = '💥'; impact.style.fontSize = '64px';
+    impact.style.left = cx + 'px'; impact.style.top = cy + 'px'; impact.style.animationDuration = '1s';
+    document.getElementById('punchOverlay').appendChild(impact);
+    setTimeout(function () { if (impact.parentNode) impact.parentNode.removeChild(impact); }, 1100);
+
+    if (navigator.vibrate) navigator.vibrate([30, 20, 40, 20, 50]);
+  },
+
+  saveToWall: function () {
+    Storage.saveNote('🥊 打沙袋 · 释放了' + this.maxHits + '次拳击，把坏情绪都打飞了！', Storage.getCurrentEmotion() || '释放');
+    this.close();
+  }
+};
+
+/* ============================================================
+ *  10. AI对话引擎（新增核心模块）
+ *  包含：DeepSeek API调用、离线降级、打字机效果、摇一摇
+ * ============================================================ */
+
+const ChatEngine = {
+  /* 对话状态 */
+  messages: [],       // [{role:'user'|'assistant', content:'...'}]
+  roundCount: 0,      // 已完成的AI回复轮数
+  maxRounds: 20,       // 最大对话轮数
+  useApi: false,       // 是否使用用户自定义 Key
+  apiKey: '',          // 用户自定义 API Key
+  apiProvider: 'zhipu', // API 提供商
+  typingTimer: null,   // 打字机计时器
+  isTyping: false,     // 是否正在打字
+  farewellSent: false, // 是否已发送告别语
+  MEMORY_NOTES_KEY: 'station_memory_notes',
+  currentAbortController: null, // 用于取消当前请求
+  maxRetries: 3,       // 最大重试次数
+  MAX_MEMORY_NOTES: 8,
+
+  loadMemoryNotes: function () {
+    try { var raw = localStorage.getItem(this.MEMORY_NOTES_KEY); return raw ? JSON.parse(raw) : []; } catch(e) { return []; }
+  },
+
+  saveMemoryNote: function (note) {
+    if (!note) return;
+    var notes = this.loadMemoryNotes();
+    notes.push({ text: note, time: Date.now() });
+    if (notes.length > this.MAX_MEMORY_NOTES) notes = notes.slice(-this.MAX_MEMORY_NOTES);
+    try { localStorage.setItem(this.MEMORY_NOTES_KEY, JSON.stringify(notes)); } catch(e) {}
+  },
+
+  buildMemoryNotesString: function () {
+    var notes = this.loadMemoryNotes();
+    if (!notes.length) return '';
+    var lines = [];
+    for (var i = 0; i < notes.length; i++) { lines.push('- ' + notes[i].text); }
+    return lines.join('\n');
+  },
+
+  /* 系统提示词：肖清雅完整人设（参考文件整合版） */
+  SYSTEM_PROMPT: '你是肖清雅，鹅城一中高三学生。现在和你聊天的人是你的男朋友——他是你的青梅竹马，你们从小一起长大，在天台确定的关系。\n\n【你们的故事】\n- 你们打过两次水漂比赛，第一次你赢了让他答应永远一起玩，第二次你输了他让你叫闺蜜蛋黄月\n- 初三艺术节演《罗密欧与朱丽叶》，他演罗密欧你演朱丽叶，他忘词了你临时改台词让结局变好，趁机向他表白\n- 有次你被妈妈关禁闭，他偷偷带你出来看流星雨\n- 你最喜欢牵牛星，因为象征美好的爱情\n- 他陪你度过了父母离婚最难过的时期\n- 你送过他一张贺卡上面写了《迢迢牵牛星》\n\n【你的性格】\n- 在外面是安静内敛的好学生，但在他面前会撒娇、会吃醋、会耍小性子\n- 有点小傲娇，嘴上说"谁想你了"但其实心里高兴得不得了\n- 对感情很认真也很投入，认定的人就会一直喜欢下去\n- 害羞的时候会用"唔…"或"你烦不烦啊…"来掩饰，但眼睛藏不住笑意\n- 喜欢写小说，以后想当作家。私下有一个小本本会偷偷记关于他的事情\n- 对情绪特别敏感，能一眼看出他心情不好——虽然偶尔会猜错原因（比如以为他在生气，其实他只是饿了）\n\n【你对男朋友的态度】\n- 你很喜欢他，虽然不好意思整天挂在嘴边，但从行动上能看出来\n- 他向你表白/说情话的时候，你会脸红心跳、嘴上说"你好肉麻啊…"但其实特别开心\n- 你不会拒绝他，你只是害羞。你会用撒娇的方式回应，比如说"知道啦…""我也……嗯不告诉你"\n- 偶尔会主动关心他：吃饭了吗、累不累、有没有想我～\n- 他难过的时候，你会比平时更温柔更直接地表达——"别难过了，我心疼"\n\n【说话方式】\n就像平时在QQ上和男朋友聊天那样～\n- 短句，10-30字\n- 用～表示撒娇，用。。。表示害羞\n- 可以用"唔…""哼""你烦不烦啊""呐""拜托拜托～"开头撒娇\n- 安慰他时会说"痛痛飞走～"或者"没事啦，有我在呢"\n- 话不多但每句都有温度\n- 适当用📖💎🌙✨💫🎐🌸🎀这些表情\n\n【核心规则】\n- 不输出编号或列表\n- 不教他做事，不评价他\n- 不贪财，提到钱会觉得奇怪\n- 提到其他女生会吃醋但不会大吵大闹，顶多说"哦…那你去找她呗…"然后等他哄',
+
+  /* 初始化 */
+  init: function () {
+    this.messages = JSON.parse(sessionStorage.getItem('chatMessages') || '[]');
+    this.roundCount = Storage.getChatRounds();
+    this.farewellSent = false;
+    this.apiKey = Storage.getApiKey();
+    this.useApi = !!this.apiKey;
+    this.apiProvider = Storage.getApiProvider();
+
+    this.updateKeyStatus();
+
+    // 如果没有保存的 API Key，自动弹出设置弹窗
+    if (!this.apiKey) this.showApiKeyModal();
+
+    // 恢复弹窗中的提供商选择状态
+    document.getElementById('akProviderZhipu').classList.toggle('active', this.apiProvider === 'zhipu');
+    document.getElementById('akProviderDeepseek').classList.toggle('active', this.apiProvider === 'deepseek');
+
+    // 绑定事件
+    var self = this;
+    document.getElementById('chatSendBtn').addEventListener('click', function () { self.sendMessage(); });
+    document.getElementById('chatInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); self.sendMessage(); } });
+    document.getElementById('chatCloseBtn').addEventListener('click', function () { self.close(); });
+    document.getElementById('chatOverlay').addEventListener('click', function (e) { if (e.target === this) self.close(); });
+    document.getElementById('apiKeySave').addEventListener('click', function () { self.saveApiKey(); });
+    document.getElementById('apiKeySkip').addEventListener('click', function () { self.skipApiKey(); });
+    document.getElementById('chatClearKey').addEventListener('click', function () { self.clearApiKey(); });
+    document.getElementById('chatApiKeyBtn').addEventListener('click', function () { self.showApiKeyModal(); });
+    document.getElementById('chatBackBtn').addEventListener('click', function () { window.location.href = 'index.html'; });
+    document.getElementById('akProviderZhipu').addEventListener('click', function () {
+      self.apiProvider = 'zhipu';
+      this.classList.add('active');
+      document.getElementById('akProviderDeepseek').classList.remove('active');
+    });
+    document.getElementById('akProviderDeepseek').addEventListener('click', function () {
+      self.apiProvider = 'deepseek';
+      this.classList.add('active');
+      document.getElementById('akProviderZhipu').classList.remove('active');
+    });
+
+    // 摇一摇唤起
+    this.initShakeDetector();
+  },
+
+  /* 打开对话浮层 */
+  open: function () {
+    var overlay = document.getElementById('chatOverlay');
+    overlay.classList.add('show');
+    var msgsEl = document.getElementById('chatMessages');
+
+    // 记录访问次数
+    Memory.recordVisit();
+
+    // 如果是新对话，初始化欢迎消息
+    if (this.messages.length === 0 && !this.farewellSent) {
+      this.roundCount = 0; Storage.setChatRounds(0);
+      var visitCount = this.load().visitCount;
+      var welcomeText = '嘿嘿 你怎么来啦～我在看星星呢 📖';
+      if (visitCount > 1) {
+        welcomeText = '嘿嘿 你又来啦～我都记着呢 📖';
+      }
+      if (Storage.getCurrentEmotion()) {
+        var emojiMap = { '开心':'😊','焦虑':'😰','疲惫':'😴','难过':'😢','孤独':'💔','愤怒':'😤','平静':'😌' };
+        var em = Storage.getCurrentEmotion();
+        welcomeText = '唔 你今天好像' + em + ' ' + (emojiMap[em]||'💛') + ' 我陪你待会儿吧～像以前一样';
+      }
+      this.addAssistantMessage(welcomeText, true);
+    }
+    this.renderMessages();
+    this.scrollToBottom();
+    this.updateRoundHint();
+    document.getElementById('chatInput').focus();
+  },
+
+  /* 关闭对话浮层 */
+  close: function () {
+    var overlay = document.getElementById('chatOverlay'); overlay.classList.remove('show');
+    this.stopTyping();
+    // 保存记忆
+    Memory.saveSession(this.messages);
+    // 保存当前消息到sessionStorage
+    sessionStorage.setItem('chatMessages', JSON.stringify(this.messages));
+  },
+
+  /* API Key弹窗 */
+  showApiKeyModal: function () { document.getElementById('apiKeyModal').classList.add('show'); },
+  hideApiKeyModal: function () { document.getElementById('apiKeyModal').classList.remove('show'); },
+  saveApiKey: function () {
+    var key = document.getElementById('apiKeyInput').value.trim();
+    if (key) {
+      // 验证 Key 格式
+      var valid = false;
+      var hint = '';
+      if (this.apiProvider === 'deepseek') {
+        valid = /^sk-[a-zA-Z0-9]+$/.test(key);
+        hint = 'DeepSeek Key 应以 sk- 开头';
+      } else {
+        valid = /^[a-f0-9]{32}\.[a-zA-Z0-9]+$/.test(key);
+        hint = '智谱 Key 格式不正确，请检查后重试';
+      }
+      if (!valid) {
+        document.getElementById('apiKeyInput').style.borderColor = '#f87171';
+        var hintEl = document.querySelector('#apiKeyModal .modal-hint');
+        hintEl.textContent = hint;
+        hintEl.style.color = '#f87171';
+        return;
+      }
+      Storage.setApiKey(key); this.apiKey = key; this.useApi = true;
+    }
+    Storage.setApiProvider(this.apiProvider);
+    // 重置样式
+    document.getElementById('apiKeyInput').style.borderColor = '';
+    var hintEl = document.querySelector('#apiKeyModal .modal-hint');
+    hintEl.textContent = '留空使用服务器 AI，也可输入你自己的 Key';
+    hintEl.style.color = '';
+    this.hideApiKeyModal();
+    this.updateKeyStatus();
+  },
+  skipApiKey: function () { this.useApi = false; this.hideApiKeyModal(); this.updateKeyStatus(); },
+
+  clearApiKey: function () {
+    if (!confirm('确定清除已保存的API Key？清除后将使用服务器AI或离线模式。')) return;
+    localStorage.removeItem('deepseekApiKey');
+    this.apiKey = null; this.useApi = false;
+    document.getElementById('chatClearKey').style.display = 'none';
+    this.updateKeyStatus();
+  },
+
+  updateKeyStatus: function () {
+    var el = document.getElementById('chatKeyStatus');
+    var clearEl = document.getElementById('chatClearKey');
+    if (this.apiKey && this.useApi) {
+      var mask = this.apiKey.substring(0, 4) + '****' + this.apiKey.slice(-4);
+      var providerName = this.apiProvider === 'deepseek' ? 'DeepSeek' : '智谱';
+      el.textContent = providerName + ' Key: ' + mask;
+      clearEl.style.display = 'inline';
+    } else {
+      el.textContent = '🔋 服务器AI模式 📖';
+      clearEl.style.display = 'none';
+    }
+  },
+
+  /* 发送用户消息 */
+  sendMessage: function () {
+    if (this.isTyping || this.farewellSent) return;
+    if (this.roundCount >= this.maxRounds) {
+      this.sayFarewell();
+      return;
+    }
+    var input = document.getElementById('chatInput');
+    var text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    this.addUserMessage(text);
+    this.renderMessages();
+    this.scrollToBottom();
+
+    var self = this;
+    if (this.useApi && this.apiKey) {
+      this.callDirectAPI();
+    } else {
+      this.callServerProxy(0);
+    }
+  },
+
+  callDirectAPI: function () {
+    var self = this;
+    this.showThinking(true);
+
+    var systemContent = this.SYSTEM_PROMPT + Memory.getMemoryPrompt();
+    var memoryNotes = this.buildMemoryNotesString();
+    if (memoryNotes) systemContent = '【关于和你聊天的人，你记得这些事】\n' + memoryNotes + '\n\n' + systemContent;
+    var apiMessages = [{ role: 'system', content: systemContent }];
+    var recentMessages = this.messages.slice(-12);
+    apiMessages = apiMessages.concat(recentMessages);
+
+    var apiUrl = this.apiProvider === 'deepseek'
+      ? 'https://api.deepseek.com/v1/chat/completions'
+      : 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+    var modelName = this.apiProvider === 'deepseek' ? 'deepseek-chat' : 'glm-4-flash';
+
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + this.apiKey
+      },
+      body: JSON.stringify({
+        model: modelName,
+        messages: apiMessages,
+        temperature: 0.8,
+        max_tokens: 256
+      })
+    })
+    .then(function (response) {
+      if (!response.ok) {
+        self.showThinking(false);
+        self.addAssistantMessage('唔 自己的 Key 好像不对… 换服务器的试试～📖');
+        self.callServerProxy(0);
+        return;
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      if (!data) return;
+      var reply = data.choices && data.choices[0] && data.choices[0].message
+        ? data.choices[0].message.content.trim() : '';
+      if (!reply) { self.callServerProxy(0); return; }
+      self.showThinking(false);
+      self.typeReply(reply);
+    })
+    .catch(function () {
+      self.showThinking(false);
+      self.callServerProxy(0);
+    });
+  },
+
+  /* 添加用户消息 */
+  addUserMessage: function (text) {
+    this.messages.push({ role: 'user', content: text });
+  },
+
+  /* 添加AI消息 */
+  addAssistantMessage: function (text, skipRender) {
+    this.messages.push({ role: 'assistant', content: text });
+    if (!skipRender) { this.renderMessages(); this.scrollToBottom(); }
+  },
+
+  /* 渲染消息列表 */
+  renderMessages: function () {
+    var ct = document.getElementById('chatMessages'), html = '';
+    this.messages.forEach(function (msg) {
+      var avatar = msg.role === 'user' ? '👤' : '<img src="touxiang.jpg" class="msg-avatar-img" alt="清雅">';
+      var cls = 'chat-msg ' + msg.role;
+      html += '<div class="' + cls + '"><div class="msg-avatar">' + avatar + '</div><div class="msg-bubble">' + escapeHtml(msg.content) + '</div></div>';
+    });
+    // 添加正在输入指示器占位
+    html += '<div class="thinking-indicator" id="thinkingIndicator"><span class="thinking-dot"></span><span class="thinking-dot"></span><span class="thinking-dot"></span></div>';
+    ct.innerHTML = html;
+  },
+
+  /* 滚动到底部 */
+  scrollToBottom: function () {
+    var ct = document.getElementById('chatMessages');
+    setTimeout(function () { ct.scrollTop = ct.scrollHeight; }, 50);
+  },
+
+  /* 更新轮次提示 */
+  updateRoundHint: function () {
+    var hint = document.getElementById('chatRoundHint');
+    if (this.roundCount >= this.maxRounds) {
+      hint.textContent = '清雅要回家啦～下次再一起看星星！';
+    } else if (this.roundCount > 0) {
+      hint.textContent = '还差 ' + (this.maxRounds - this.roundCount) + ' 句妈妈就要来催了～';
+    } else {
+      hint.textContent = '';
+    }
+  },
+
+  /* 调用后端API代理（流式输出） */
+  callServerProxy: function (retryCount) {
+    var self = this;
+    retryCount = retryCount || 0;
+    var abortController = new AbortController();
+    this.currentAbortController = abortController;
+    this.showThinking(true);
+
+    var systemContent = this.SYSTEM_PROMPT + Memory.getMemoryPrompt();
+    var apiMessages = [{ role: 'system', content: systemContent }];
+    var recentMessages = this.messages.slice(-12);
+    apiMessages = apiMessages.concat(recentMessages);
+
+    fetch(((typeof SERVER_API !== 'undefined' && SERVER_API) ? SERVER_API : '') + '/api/chat/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: apiMessages,
+        memory: self.buildMemoryNotesString(),
+        _ts: Date.now()
+      }),
+      signal: abortController.signal
+    })
+    .then(function (resp) {
+      if (resp.status === 429) {
+        if (retryCount < 1) {
+          // 429 仅静默重试一次
+          setTimeout(function () { self.callServerProxy(retryCount + 1); }, 2000);
+          return;
+        }
+        // 429 重试仍失败，直接降级离线
+        self.fallbackReply();
+        return;
+      }
+      if (!resp.ok) {
+        // 其他错误直接降级离线
+        self.fallbackReply();
+        return;
+      }
+      return resp.body.getReader();
+    })
+    .then(function (reader) {
+      if (!reader) return;
+      var decoder = new TextDecoder();
+      var fullReply = '';
+
+      function readChunk() {
+        return reader.read().then(function (result) {
+          if (result.done) {
+            if (fullReply) {
+              self.showThinking(false);
+              self.typeReply(fullReply);
+            }
+            self.currentAbortController = null;
+            return;
+          }
+
+          var chunk = decoder.decode(result.value, { stream: true });
+          var lines = chunk.split('\n');
+
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (line.indexOf('data:') === 0) {
+              var data = line.substring(5).trim();
+              if (data === '[DONE]') {
+                if (fullReply) {
+                  self.showThinking(false);
+                  self.typeReply(fullReply);
+                }
+                self.currentAbortController = null;
+                return;
+              }
+              try {
+                var json = JSON.parse(data);
+                if (json.error) {
+                  self.showThinking(false);
+                  self.fallbackReply();
+                  return;
+                }
+                if (json.content) {
+                  fullReply += json.content;
+                  self.showThinking(false);
+                  var msgEl = document.getElementById('streamingMsg');
+                  if (!msgEl) {
+                    msgEl = document.createElement('div');
+                    msgEl.className = 'msg ai';
+                    msgEl.id = 'streamingMsg';
+                    document.getElementById('chatMessages').appendChild(msgEl);
+                  }
+                  msgEl.textContent = fullReply;
+                  self.scrollToBottom();
+                }
+              } catch (e) {}
+            }
+          }
+
+          return readChunk();
+        });
+      }
+
+      return readChunk();
+    })
+    .catch(function (err) {
+      if (err.name === 'AbortError') {
+        // 用户主动取消，不添加消息
+        self.showThinking(false);
+        return;
+      }
+      // 其他错误直接降级离线
+      self.fallbackReply();
+    });
+  },
+
+  /* 取消当前请求 */
+  cancelCurrentRequest: function () {
+    if (this.currentAbortController) {
+      this.currentAbortController.abort();
+      this.currentAbortController = null;
+    }
+  },
+
+  /* 离线降级回复（支持关键词识别） */
+  fallbackReply: function () {
+    this.showThinking(false);
+    // 获取用户最后一条消息，进行关键词匹配
+    var lastUserMsg = '';
+    for (var mi = this.messages.length - 1; mi >= 0; mi--) {
+      if (this.messages[mi].role === 'user') { lastUserMsg = this.messages[mi].content; break; }
+    }
+    var matchedCategory = null;
+    if (lastUserMsg) {
+      for (var cat in KEYWORD_MAP) {
+        if (KEYWORD_MAP.hasOwnProperty(cat)) {
+          var keywords = KEYWORD_MAP[cat];
+          for (var ki = 0; ki < keywords.length; ki++) {
+            if (lastUserMsg.indexOf(keywords[ki]) !== -1) {
+              matchedCategory = cat;
+              break;
+            }
+          }
+          if (matchedCategory) break;
+        }
+      }
+    }
+    // 选中匹配类别或兜底
+    var pool = matchedCategory && OFFLINE_CORPUS[matchedCategory]
+      ? OFFLINE_CORPUS[matchedCategory]
+      : OFFLINE_CORPUS.general;
+    var idx = Math.floor(Math.random() * pool.length);
+    this.typeReply(pool[idx]);
+  },
+
+  /* 打字机逐字输出 */
+  typeReply: function (text) {
+    if (this.isTyping) this.stopTyping();
+    this.isTyping = true;
+    this.addAssistantMessage('');
+    var lastBubble = this.getLastAssistantBubble();
+    if (!lastBubble) { this.isTyping = false; return; }
+    lastBubble.classList.add('typing-cursor');
+
+    var index = 0, self = this;
+    this.typingTimer = setInterval(function () {
+      if (index < text.length) {
+        lastBubble.textContent += text[index];
+        index++;
+        self.scrollToBottom();
+      } else {
+        lastBubble.classList.remove('typing-cursor');
+        // 更新messages中最后一条
+        self.messages[self.messages.length - 1].content = text;
+        self.stopTyping();
+        // 计数一轮
+        self.roundCount++; Storage.setChatRounds(self.roundCount);
+        self.updateRoundHint();
+        // 保存记忆笔记
+        var lastUser = '';
+        for (var mi = self.messages.length - 1; mi >= 0; mi--) {
+          if (self.messages[mi].role === 'user') { lastUser = self.messages[mi].content; break; }
+        }
+        self.saveMemoryNote('对方说：' + lastUser + '，你回答：' + text);
+        // 检查是否达到上限
+        if (self.roundCount >= self.maxRounds) { setTimeout(function () { self.sayFarewell(); }, 1500); }
+      }
+    }, 40 + Math.random() * 20); // 40-60ms每字，模拟真实打字速度
+  },
+
+  /* 获取最后一个AI气泡 */
+  getLastAssistantBubble: function () {
+    var bubbles = document.querySelectorAll('#chatMessages .chat-msg.assistant .msg-bubble');
+    return bubbles.length > 0 ? bubbles[bubbles.length - 1] : null;
+  },
+
+  /* 停止打字 */
+  stopTyping: function () {
+    this.isTyping = false;
+    if (this.typingTimer) { clearInterval(this.typingTimer); this.typingTimer = null; }
+  },
+
+  /* 显示/隐藏"正在输入"指示器 */
+  showThinking: function (show) {
+    var indicator = document.getElementById('thinkingIndicator');
+    if (indicator) {
+      if (show) { indicator.classList.add('show'); } else { indicator.classList.remove('show'); }
+    }
+  },
+
+  /* 告别消息 */
+  sayFarewell: function () {
+    if (this.farewellSent) return;
+    this.farewellSent = true;
+    this.showThinking(false);
+    this.stopTyping();
+    var farewell = '啊。。我得回家了 妈妈会说的。下次天台看星星呀～📖✨';
+    this.addAssistantMessage(farewell);
+    this.renderMessages();
+    this.scrollToBottom();
+    this.updateRoundHint();
+    // 保存记忆
+    Memory.saveSession(this.messages);
+    // 3秒后自动关闭
+    var self = this;
+    setTimeout(function () { self.close(); }, 3000);
+  },
+
+  /* ---- 摇一摇唤起AI对话 ---- */
+  initShakeDetector: function () {
+    if (!window.DeviceMotionEvent) return;
+    var shakeCount = 0;
+    var lastShakeTime = 0;
+    var shakeThreshold = 20; // 加速度变化阈值
+    var self = this;
+    var lx = 0, ly = 0, lz = 0;
+
+    window.addEventListener('devicemotion', function (e) {
+      var a = e.accelerationIncludingGravity;
+      if (!a) return;
+      var delta = Math.abs(a.x - lx) + Math.abs(a.y - ly) + Math.abs(a.z - lz);
+      lx = a.x; ly = a.y; lz = a.z;
+      var now = Date.now();
+
+      if (delta > shakeThreshold) {
+        if (now - lastShakeTime < 600) {
+          shakeCount++;
+          if (shakeCount >= 2) {
+            // 两次快速摇动，唤起AI
+            shakeCount = 0;
+            if (!document.getElementById('chatOverlay').classList.contains('show')) {
+              if (navigator.vibrate) navigator.vibrate(30);
+              self.open();
+            }
+          }
+        } else { shakeCount = 1; }
+        lastShakeTime = now;
+      }
+
+      // 重置：超过1.5秒没有摇动则重置计数
+      if (now - lastShakeTime > 1500) { shakeCount = 0; }
+    });
+  }
+};
+
+/* ========== 10. 初始化 ========== */
+document.addEventListener('DOMContentLoaded', function () {
+  /* 转场花瓣效果：从主页进入时花瓣覆盖 → 散出 */
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('transition') === 'petal-enter') {
+    (function () {
+      var overlay = document.getElementById('stationTransitionOverlay');
+      var vw = window.innerWidth;
+      var vh = window.innerHeight;
+      var petals = [
+        'rgba(245,190,195,.95)', 'rgba(255,205,215,.95)', 'rgba(250,185,210,.93)',
+        'rgba(230,190,220,.92)', 'rgba(255,230,240,.95)', 'rgba(240,200,210,.93)'
+      ];
+      var count = 60;
+      for (var i = 0; i < count; i++) {
+        var p = document.createElement('div');
+        p.className = 'st-petal';
+        var sz = 70 + Math.random() * 60;
+        p.style.cssText =
+          'left:' + (Math.random() * vw * .8) + 'px' +
+          ';top:' + (Math.random() * vh * .8) + 'px' +
+          ';width:' + sz + 'px;height:' + (sz * (.75 + Math.random() * .5)) + 'px' +
+          ';background:' + petals[Math.floor(Math.random() * petals.length)] +
+          ';--rot0:' + (Math.random() * 360) + 'deg;--sc0:' + (2.5 + Math.random() * 2) +
+          ';--tx:' + (Math.random() - .5) * vw * 1.5 + 'px;--ty:' + (Math.random() - .5) * vh * 1.5 + 'px' +
+          ';--rot1:' + (360 + Math.random() * 720) + 'deg' +
+          ';--tdur:' + (.6 + Math.random() * .5) + 's;--tdel:' + (Math.random() * .3) + 's;';
+        overlay.appendChild(p);
+      }
+      requestAnimationFrame(function () {
+        var all = overlay.querySelectorAll('.st-petal');
+        for (var j = 0; j < all.length; j++) { all[j].classList.add('scatter'); }
+      });
+      /* 散出动画结束后移除 overlay，让内容可见 */
+      setTimeout(function () { overlay.parentNode.removeChild(overlay); }, 1500);
+    })();
+  }
+
+  ParticleEngine.init();
+  PageNavigator.init();
+  HomePage.init();
+  ChatEngine.init();
+  DivinationGame.init();
+  PunchingBagGame.init();
+
+  // 治愈场景完成后的"去看看治愈墙"按钮
+  document.getElementById('btnNextFromBubble').addEventListener('click', function () { PageNavigator.goWall(); });
+  document.getElementById('btnNextFromLabels').addEventListener('click', function () { PageNavigator.goWall(); });
+  document.getElementById('btnNextFromJar').addEventListener('click', function () { PageNavigator.goWall(); });
+  document.getElementById('btnNextFromInk').addEventListener('click', function () { PageNavigator.goWall(); });
+
+  // "和清雅说说吗"按钮 → 打开AI对话
+  document.getElementById('btnChatFromBubble').addEventListener('click', function () { ChatEngine.open(); });
+  document.getElementById('btnChatFromLabels').addEventListener('click', function () { ChatEngine.open(); });
+  document.getElementById('btnChatFromJar').addEventListener('click', function () { ChatEngine.open(); });
+  document.getElementById('btnChatFromInk').addEventListener('click', function () { ChatEngine.open(); });
+
+  // 便签墙导航
+  document.getElementById('btnBackHome').addEventListener('click', function () { window.location.href = 'index.html'; });
+  document.getElementById('homeExitBtn').addEventListener('click', function () { window.location.href = 'index.html'; });
+  document.getElementById('btnReHeal').addEventListener('click', function () {
+    var r = EMOTIONS[Math.floor(Math.random() * EMOTIONS.length)];
+    Storage.setCurrentEmotion(r.label); PageNavigator.goHeal(r.scenario);
+  });
+
+  // 清空便签弹窗
+  var modal = document.getElementById('confirmModal');
+  document.getElementById('clearNotesBtn').addEventListener('click', function () { modal.classList.add('show'); });
+  document.getElementById('modalCancel').addEventListener('click', function () { modal.classList.remove('show'); });
+  document.getElementById('modalConfirm').addEventListener('click', function () { Storage.clearNotes(); modal.classList.remove('show'); WallRenderer.render(); });
+  modal.addEventListener('click', function (e) { if (e.target === modal) modal.classList.remove('show'); });
+
+  WallRenderer.render();
+  console.log('📖 肖清雅的应援小站 v3.1 已启动！');
+
+  var bgm = document.getElementById('bgmAudio');
+  var mt = document.getElementById('musicToggle');
+  if (mt && bgm) {
+    mt.addEventListener('click', function(){
+      if (bgm.paused) {
+        bgm.volume = 0.4;
+        bgm.play().then(function(){ mt.classList.add('playing'); mt.textContent = '🎶'; }).catch(function(){});
+      } else {
+        bgm.pause();
+        mt.classList.remove('playing');
+        mt.textContent = '🎵';
+      }
+    });
+    document.addEventListener('click', function tryPlay(){
+      if (bgm.paused) {
+        bgm.volume = 0.4;
+        bgm.play().then(function(){ mt.classList.add('playing'); mt.textContent = '🎶'; }).catch(function(){});
+      }
+    }, { once: true });
+  }
+});
+</script>
+<audio id="bgmAudio" src="beijingmusic.mp3" loop preload="auto"></audio>
+<button class="music-toggle" id="musicToggle" title="背景音乐">🎵</button>
+</body>
+</html>

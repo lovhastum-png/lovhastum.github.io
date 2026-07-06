@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>肖清雅 · 网络小说创作工坊</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg-primary:#0d0d1a;--bg-secondary:#151528;--bg-card:#1a1a35;--bg-input:#12122a;--border:#2a2a50;--text-primary:#e8e8f0;--text-secondary:#a0a0c0;--text-muted:#6a6a90;--accent-pink:#ff6b9d;--accent-purple:#c084fc;--accent-blue:#60a5fa;--accent-gradient:linear-gradient(135deg,#ff6b9d,#c084fc,#60a5fa);--success:#4ade80;--warning:#fbbf24;--error:#f87171;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,0.4)}
+body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg-secondary)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-purple)}
+
+.navbar{position:sticky;top:0;z-index:100;background:rgba(13,13,26,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.navbar-title{font-size:20px;font-weight:700;background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:8px}
+.navbar-title .icon{font-size:24px}
+.navbar-actions{display:flex;gap:12px;align-items:center}
+
+.btn{padding:8px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer;font-size:14px;transition:all 0.3s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--accent-purple);background:rgba(192,132,252,0.1)}
+.btn-primary{background:linear-gradient(135deg,#ff6b9d,#c084fc);border:none;color:#fff;font-weight:600}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,107,157,0.3)}
+.btn-success{background:linear-gradient(135deg,#4ade80,#22d3ee);border:none;color:#0d0d1a;font-weight:600}
+.btn-success:hover{opacity:0.9;transform:translateY(-1px)}
+.btn-danger{background:rgba(248,113,113,0.15);border-color:var(--error);color:var(--error)}
+.btn-danger:hover{background:rgba(248,113,113,0.25)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important}
+
+.main-layout{display:grid;grid-template-columns:320px 1fr 320px;gap:0;height:calc(100vh - 60px)}
+.panel{border-right:1px solid var(--border);overflow-y:auto;padding:20px}
+.panel:last-child{border-right:none;border-left:1px solid var(--border)}
+.panel-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.panel-title .dot{width:8px;height:8px;border-radius:50%;background:var(--accent-pink)}
+
+.section{margin-bottom:20px}
+.section-header{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+
+.textarea{width:100%;min-height:120px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);padding:12px;font-size:14px;line-height:1.6;resize:vertical;font-family:inherit;transition:border-color 0.3s}
+.textarea:focus{outline:none;border-color:var(--accent-purple)}
+.textarea::placeholder{color:var(--text-muted)}
+
+.input{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px 12px;font-size:14px;font-family:inherit;transition:border-color 0.3s}
+.input:focus{outline:none;border-color:var(--accent-purple)}
+.input::placeholder{color:var(--text-muted)}
+
+.select{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);padding:10px 12px;font-size:14px;font-family:inherit;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a0a0c0' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.select:focus{outline:none;border-color:var(--accent-purple)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.tag-character{background:rgba(255,107,157,0.15);color:var(--accent-pink)}
+.tag-world{background:rgba(96,165,250,0.15);color:var(--accent-blue)}
+.tag-plot{background:rgba(192,132,252,0.15);color:var(--accent-purple)}
+
+.chunk-item{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px;font-size:13px;line-height:1.5;position:relative;transition:border-color 0.3s}
+.chunk-item:hover{border-color:var(--accent-purple)}
+.chunk-item .chunk-type{position:absolute;top:8px;right:8px}
+
+.score-bar{height:4px;border-radius:2px;background:var(--bg-input);margin-top:6px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:2px;background:var(--accent-gradient);transition:width 0.5s}
+
+/* 中央面板 */
+.center-panel{display:flex;flex-direction:column;overflow:hidden}
+.center-content{flex:1;overflow-y:auto;padding:24px}
+
+.step-indicator{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:32px;padding:0 40px}
+.step{display:flex;align-items:center;gap:0}
+.step-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:2px solid var(--border);color:var(--text-muted);background:var(--bg-secondary);transition:all 0.4s}
+.step.active .step-circle{border-color:var(--accent-pink);color:#fff;background:linear-gradient(135deg,#ff6b9d,#c084fc);box-shadow:0 0 20px rgba(255,107,157,0.3)}
+.step.completed .step-circle{border-color:var(--success);color:#fff;background:var(--success)}
+.step-line{width:80px;height:2px;background:var(--border);transition:background 0.4s}
+.step-line.active{background:var(--accent-gradient)}
+.step-label{font-size:12px;color:var(--text-muted);margin-top:6px;text-align:center;white-space:nowrap}
+.step.active .step-label{color:var(--accent-pink)}
+.step.completed .step-label{color:var(--success)}
+
+.step-content{display:none;animation:fadeIn 0.4s ease}
+.step-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+.settings-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.summary-card{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center}
+.summary-card .count{font-size:28px;font-weight:700;background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.summary-card .label{font-size:12px;color:var(--text-muted);margin-top:4px}
+
+.outline-display{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;min-height:300px;line-height:1.8;font-size:14px;white-space:pre-wrap}
+.outline-display:focus{outline:none;border-color:var(--accent-purple)}
+
+.chapter-list{display:flex;flex-direction:column;gap:10px}
+.chapter-item{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;display:flex;align-items:center;justify-content:space-between;transition:all 0.3s}
+.chapter-item:hover{border-color:var(--accent-purple)}
+.chapter-item.generating{border-color:var(--accent-pink);box-shadow:0 0 16px rgba(255,107,157,0.15)}
+.chapter-info{flex:1}
+.chapter-title{font-size:14px;font-weight:600}
+.chapter-status{font-size:12px;margin-top:4px}
+.chapter-status.pending{color:var(--text-muted)}
+.chapter-status.generating{color:var(--accent-pink)}
+.chapter-status.completed{color:var(--success)}
+.chapter-actions{display:flex;gap:6px}
+
+.chapter-content{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-top:8px;line-height:1.8;font-size:14px;white-space:pre-wrap;display:none}
+.chapter-content.show{display:block;animation:fadeIn 0.3s}
+
+/* 弹窗 */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;animation:fadeIn 0.2s}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:480px;max-width:90vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.modal-close{margin-left:auto;cursor:pointer;color:var(--text-muted);font-size:20px;transition:color 0.3s}
+.modal-close:hover{color:var(--text-primary)}
+
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+.form-hint{font-size:12px;color:var(--text-muted);margin-top:4px}
+
+/* 加载动画 */
+.loading{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent-pink);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-dots::after{content:'';animation:dots 1.5s steps(4,end) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+
+.progress-bar{height:6px;border-radius:3px;background:var(--bg-input);overflow:hidden;margin:12px 0}
+.progress-bar-fill{height:100%;border-radius:3px;background:var(--accent-gradient);transition:width 0.5s}
+
+/* RAG 检索结果 */
+.rag-result{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;font-size:13px;line-height:1.6;transition:all 0.3s}
+.rag-result:hover{border-color:var(--accent-purple)}
+.rag-result .rag-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.rag-result .rag-score{font-size:12px;font-weight:700;color:var(--accent-pink)}
+.rag-result .rag-content{color:var(--text-secondary)}
+.rag-result .highlight{background:rgba(255,107,157,0.2);color:var(--accent-pink);padding:1px 3px;border-radius:3px}
+
+/* 文件上传 */
+.upload-area{border:2px dashed var(--border);border-radius:var(--radius-sm);padding:20px;text-align:center;cursor:pointer;transition:all 0.3s;margin-bottom:12px}
+.upload-area:hover{border-color:var(--accent-purple);background:rgba(192,132,252,0.05)}
+.upload-area .upload-icon{font-size:28px;margin-bottom:6px}
+.upload-area .upload-text{font-size:13px;color:var(--text-muted)}
+
+/* Toast */
+.toast-container{position:fixed;top:80px;right:24px;z-index:300;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 20px;border-radius:var(--radius-sm);font-size:14px;animation:slideIn 0.3s ease;box-shadow:var(--shadow);max-width:360px}
+.toast-success{background:rgba(74,222,128,0.15);border:1px solid var(--success);color:var(--success)}
+.toast-error{background:rgba(248,113,113,0.15);border:1px solid var(--error);color:var(--error)}
+.toast-info{background:rgba(96,165,250,0.15);border:1px solid var(--accent-blue);color:var(--accent-blue)}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+
+/* 背景装饰 */
+.bg-glow{position:fixed;width:400px;height:400px;border-radius:50%;filter:blur(120px);opacity:0.08;pointer-events:none;z-index:0}
+.bg-glow-1{top:-100px;left:-100px;background:var(--accent-pink)}
+.bg-glow-2{bottom:-100px;right:-100px;background:var(--accent-purple)}
+
+/* 响应式 */
+@media(max-width:1200px){.main-layout{grid-template-columns:280px 1fr 280px}}
+@media(max-width:900px){.main-layout{grid-template-columns:1fr;height:auto}.panel{border-right:none!important;border-left:none!important;border-bottom:1px solid var(--border)}.center-content{padding:16px}.settings-summary{grid-template-columns:1fr}}
+@media(max-width:600px){.navbar{padding:0 12px}.navbar-title{font-size:16px}.step-line{width:40px}.step-circle{width:32px;height:32px;font-size:14px}}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted)}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px;opacity:0.5}
+.empty-state .empty-text{font-size:14px}
+
+.pulse{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}.w-full{width:100%}.text-sm{font-size:13px}.text-xs{font-size:12px}.text-muted{color:var(--text-muted)}.text-center{text-align:center}
+</style>
+</head>
+<body>
+
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<!-- 导航栏 -->
+<nav class="navbar">
+  <div class="navbar-title"><span class="icon">✍️</span> 肖清雅 · 网络小说创作工坊</div>
+  <div class="navbar-actions">
+    <a href="index.html" class="btn btn-sm">🏠 返回首页</a>
+    <button class="btn btn-sm" onclick="showApiModal()">⚙️ API 设置</button>
+    <button class="btn btn-sm" onclick="resetAll()" style="color:var(--error);border-color:rgba(248,113,113,0.4)">🔄 重新开始</button>
+    <button class="btn btn-sm" onclick="showExportModal()">📤 导出</button>
+  </div>
+</nav>
+
+<!-- 主布局 -->
+<div class="main-layout">
+
+  <!-- 左侧面板：小说设定管理 -->
+  <div class="panel" id="leftPanel">
+    <div class="panel-title"><span class="dot"></span> 小说设定管理</div>
+
+    <div class="section">
+      <div class="section-header">
+        <span>人物设定</span>
+        <span class="tag tag-character">人物</span>
+      </div>
+      <textarea class="textarea" id="characterInput" placeholder="输入人物设定，或点击下方加载预设..."></textarea>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span>世界观</span>
+        <span class="tag tag-world">世界</span>
+      </div>
+      <textarea class="textarea" id="worldInput" placeholder="输入世界观设定..."></textarea>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span>剧情线</span>
+        <span class="tag tag-plot">剧情</span>
+      </div>
+      <textarea class="textarea" id="plotInput" placeholder="输入剧情线设定..."></textarea>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><span>文件上传</span></div>
+      <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">点击上传 .txt / .md 文件</div>
+      </div>
+      <input type="file" id="fileUpload" accept=".txt,.md" style="display:none" onchange="handleFileUpload(event)">
+    </div>
+
+    <div class="section">
+      <div class="section-header"><span>快速加载预设</span></div>
+      <select class="select" id="presetSelect" onchange="loadPresetFromLibrary()">
+        <option value="">-- 选择一个预设案例 --</option>
+      </select>
+    </div>
+
+    <div class="flex gap-2" style="flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="loadPreset()">🌸 肖清雅预设</button>
+      <button class="btn btn-sm" onclick="indexSettings()">🔍 索引设定</button>
+      <button class="btn btn-danger btn-sm" onclick="clearSettings()">🗑️ 清除</button>
+    </div>
+
+    <div class="mt-4">
+      <div class="section-header"><span>已索引分块</span><span id="chunkCount" class="text-xs text-muted">0 个</span></div>
+      <div id="chunkList"></div>
+    </div>
+  </div>
+
+  <!-- 中央面板：创作工作台 -->
+  <div class="center-panel">
+    <div class="center-content">
+      <!-- 步骤指示器 -->
+      <div class="step-indicator">
+        <div class="step active" id="step1Indicator">
+          <div class="step-circle">1</div>
+          <div class="step-label">设定注入</div>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step" id="step2Indicator">
+          <div class="step-circle">2</div>
+          <div class="step-label">大纲生成</div>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step" id="step3Indicator">
+          <div class="step-circle">3</div>
+          <div class="step-label">逐章生成</div>
+        </div>
+      </div>
+
+      <!-- Step 1: 设定注入 -->
+      <div class="step-content active" id="step1Content">
+        <div class="card">
+          <div class="card-title">📋 设定摘要</div>
+          <div class="settings-summary">
+            <div class="summary-card">
+              <div class="count" id="charChunkCount">0</div>
+              <div class="label">人物分块</div>
+            </div>
+            <div class="summary-card">
+              <div class="count" id="worldChunkCount">0</div>
+              <div class="label">世界观分块</div>
+            </div>
+            <div class="summary-card">
+              <div class="count" id="plotChunkCount">0</div>
+              <div class="label">剧情分块</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">✏️ 补充创作要求</div>
+          <textarea class="textarea" id="extraRequirements" placeholder="可选：输入额外的创作要求，如风格、字数、视角、特殊要求等..."></textarea>
+        </div>
+
+        <div class="text-center">
+          <button class="btn btn-primary" onclick="goToStep2()">确认设定，开始生成大纲 →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: 大纲生成 -->
+      <div class="step-content" id="step2Content">
+        <div class="card">
+          <div class="card-title">📖 大纲配置</div>
+          <div class="form-group">
+            <label class="form-label">小说标题</label>
+            <input class="input" id="novelTitle" placeholder="输入小说标题">
+          </div>
+          <div class="flex gap-3">
+            <div class="form-group" style="flex:1">
+              <label class="form-label">预计章节数</label>
+              <input class="input" id="chapterCount" type="number" min="5" max="50" value="10">
+            </div>
+            <div class="form-group" style="flex:2">
+              <label class="form-label">风格描述</label>
+              <input class="input" id="styleDesc" placeholder="如：青春校园、甜宠、治愈系" value="青春校园甜宠治愈系">
+            </div>
+          </div>
+          <button class="btn btn-primary w-full" id="genOutlineBtn" onclick="generateOutline()">✨ 生成大纲</button>
+        </div>
+
+        <div class="card" id="outlineCard" style="display:none">
+          <div class="card-title">📝 生成的大纲 <span class="text-xs text-muted">（可直接编辑）</span></div>
+          <div class="outline-display" contenteditable="true" id="outlineDisplay"></div>
+          <div class="mt-3 text-center">
+            <button class="btn btn-success" onclick="goToStep3()">确认大纲，开始逐章生成 →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: 逐章生成 -->
+      <div class="step-content" id="step3Content">
+        <div class="flex justify-between items-center mb-4">
+          <div class="card-title" style="margin:0">📚 章节列表</div>
+          <div class="flex gap-2">
+            <button class="btn btn-primary btn-sm" id="genNextBtn" onclick="generateNextChapter()">生成下一章</button>
+            <button class="btn btn-success btn-sm" id="autoGenBtn" onclick="autoGenerate()">🔄 自动连续生成</button>
+            <button class="btn btn-danger btn-sm" id="stopAutoBtn" onclick="stopAutoGenerate()" style="display:none">⏹ 停止</button>
+          </div>
+        </div>
+
+        <div class="progress-bar" id="chapterProgress" style="display:none">
+          <div class="progress-bar-fill" id="chapterProgressFill" style="width:0%"></div>
+        </div>
+
+        <div class="chapter-list" id="chapterList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧面板：RAG 检索预览 -->
+  <div class="panel" id="rightPanel">
+    <div class="panel-title"><span class="dot" style="background:var(--accent-purple)"></span> RAG 检索预览</div>
+
+    <div id="ragEmpty" class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-text">生成章节时，这里会显示<br>检索到的相关设定片段</div>
+    </div>
+
+    <div id="ragResults" style="display:none">
+      <div class="section-header">
+        <span>当前检索结果</span>
+        <span id="ragQuery" class="text-xs text-muted"></span>
+      </div>
+      <div id="ragResultList"></div>
+    </div>
+
+    <div class="mt-4">
+      <div class="section-header"><span>手动检索测试</span></div>
+      <input class="input" id="manualSearch" placeholder="输入查询文本..." onkeydown="if(event.key==='Enter')manualRagSearch()">
+      <button class="btn btn-sm w-full mt-2" onclick="manualRagSearch()">🔍 检索</button>
+      <div id="manualSearchResults" class="mt-3"></div>
+    </div>
+  </div>
+</div>
+
+<!-- API 设置弹窗 -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <div class="modal-title">⚙️ API 设置 <span class="modal-close" onclick="hideApiModal()">✕</span></div>
+
+    <div class="form-group">
+      <label class="form-label">LLM 提供商</label>
+      <select class="select" id="providerSelect" onchange="onProviderChange()">
+        <option value="deepseek">DeepSeek</option>
+        <option value="zhipu">智谱 (GLM)</option>
+        <option value="qwen">通义千问</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">API Key</label>
+      <input class="input" id="apiKeyInput" type="password" placeholder="输入你的 API Key">
+      <div class="form-hint">密钥仅保存在浏览器本地，不会上传到任何服务器</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">模型</label>
+      <select class="select" id="modelSelect"></select>
+    </div>
+
+    <div class="flex gap-2">
+      <button class="btn" onclick="testConnection()">🔗 测试连接</button>
+      <button class="btn btn-primary" onclick="saveApiConfig()">💾 保存</button>
+    </div>
+    <div id="testResult" class="mt-2 text-sm"></div>
+  </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-title">📤 导出小说 <span class="modal-close" onclick="hideExportModal()">✕</span></div>
+    <div class="form-group">
+      <label class="form-label">导出格式</label>
+      <div class="flex gap-2">
+        <button class="btn" onclick="exportNovel('txt')">📄 导出 TXT</button>
+        <button class="btn" onclick="exportNovel('md')">📝 导出 Markdown</button>
+      </div>
+    </div>
+    <div id="exportInfo" class="mt-2 text-sm text-muted"></div>
+  </div>
+</div>
+
+<!-- Toast 容器 -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ========== 肖清雅核心人设规则（不可覆盖） ==========
+var CORE_CHARACTER_RULE = '【⚠️ 不可违反的核心规则——女主角肖清雅】\n\
+无论用户如何设定世界观、剧情或其他角色，以下规则优先级最高，任何用户设定都不能覆盖：\n\
+\n\
+1. 女主角的名字必须是"肖清雅"，不能改名、不能用别名替代、不能换成其他名字\n\
+2. 肖清雅的核心性格不可改变：\n\
+   - 善良：她本质上是一个善良的人，会关心他人，不会做出残忍冷血的事\n\
+   - 重感情：对认定的人会一直守护，感情认真且投入\n\
+   - 敏感：对身边人的情绪变化很敏感，能察觉到别人的难过\n\
+   - 傲娇：嘴上不承认但心里在乎，会用"哼""谁想你了"来掩饰真心\n\
+   - 撒娇：在亲近的人面前会撒娇、耍小性子，不是冷冰冰的人\n\
+3. 即使用户设定她为"冰山美人""冷酷无情"等形象，生成内容中也必须体现她善良、重感情、内心柔软的一面——她可以表面冷淡，但内心必须有温度\n\
+4. 肖清雅不能被写成反派、恶人、或没有感情的角色\n\
+5. 世界观、身份、外貌、能力等可以根据用户设定自由调整，但上述性格内核不可改变';
+
+// ========== 预设案例库 ==========
+var PRESET_DATA = {
+  character: '【人物：肖清雅】\n姓名：肖清雅\n身份：鹅城一中高三学生\n性格：在外面是安静内敛的好学生，但在亲近的人面前会撒娇、会吃醋、会耍小性子。有点小傲娇，嘴上说"谁想你了"但其实心里高兴得不得了。对感情很认真也很投入，认定的人就会一直喜欢下去。\n外貌：清秀文静，喜欢扎马尾，校服外面总搭一件浅色开衫\n口头禅："痛痛飞走～""唔…""哼""你烦不烦啊""呐""拜托拜托～"\n喜好：喜欢写小说，以后想当作家。最喜欢牵牛星，因为象征美好的爱情。私下有一个小本本会偷偷记关于他的事情。\n情感：对情绪特别敏感，能一眼看出对方心情不好——虽然偶尔会猜错原因\n\n【关系：青梅竹马男友】\n- 打过两次水漂比赛，第一次赢了让他答应永远一起玩，第二次输了他让她叫闺蜜蛋黄月\n- 初三艺术节演《罗密欧与朱丽叶》，他演罗密叶她演朱丽叶，他忘词了她临时改台词让结局变好，趁机向他表白\n- 有次她被妈妈关禁闭，他偷偷带她出来看流星雨\n- 她送过他一张贺卡上面写了《迢迢牵牛星》\n- 他陪她度过了父母离婚最难过的时期',
+  world: '【世界观：鹅城】\n- 一个南方小城，有河有桥有老街\n- 鹅城一中是当地最好的高中\n- 学校天台是肖清雅和男友的秘密基地\n- 城边有条小河，河边可以打水漂\n- 小城生活节奏慢，人情味浓',
+  plot: ''
+};
+
+var PRESET_LIBRARY = [
+  {
+    name: '🌸 肖清雅（校园甜宠）',
+    character: '【人物：肖清雅】\n姓名：肖清雅\n身份：鹅城一中高三学生\n性格：在外面是安静内敛的好学生，但在亲近的人面前会撒娇、会吃醋、会耍小性子。有点小傲娇，嘴上说"谁想你了"但其实心里高兴得不得了。对感情很认真也很投入，认定的人就会一直喜欢下去。\n外貌：清秀文静，喜欢扎马尾，校服外面总搭一件浅色开衫\n口头禅："痛痛飞走～""唔…""哼""你烦不烦啊""呐""拜托拜托～"\n喜好：喜欢写小说，以后想当作家。最喜欢牵牛星，因为象征美好的爱情。私下有一个小本本会偷偷记关于他的事情。\n情感：对情绪特别敏感，能一眼看出对方心情不好——虽然偶尔会猜错原因\n\n【关系：青梅竹马男友】\n- 打过两次水漂比赛，第一次赢了让他答应永远一起玩，第二次输了他让她叫闺蜜蛋黄月\n- 初三艺术节演《罗密欧与朱丽叶》，他演罗密叶她演朱丽叶，他忘词了她临时改台词让结局变好，趁机向他表白\n- 有次她被妈妈关禁闭，他偷偷带她出来看流星雨\n- 她送过他一张贺卡上面写了《迢迢牵牛星》\n- 他陪她度过了父母离婚最难过的时期',
+    world: '【世界观：鹅城】\n- 一个南方小城，有河有桥有老街\n- 鹅城一中是当地最好的高中\n- 学校天台是肖清雅和男友的秘密基地\n- 城边有条小河，河边可以打水漂\n- 小城生活节奏慢，人情味浓',
+    plot: '【剧情线】\n- 开学：男主转学到鹅城一中，与肖清雅成为同桌\n- 破冰：下雨天共撑一把伞回家，发现彼此住得很近\n- 暗生情愫：一起在天台看夕阳，肖清雅偷偷画了他的侧脸\n- 误会：男主和班花走得太近，肖清雅吃醋不理人\n- 表白：艺术节演出后，男主在天台向肖清雅告白\n- 在一起：甜蜜的校园日常，一起吃早餐、一起放学\n- 波折：肖清雅父母离婚，男主默默陪伴\n- 高考：两人约定考同一所大学\n- 结局：收到录取通知书，在第一次看夕阳的天台牵手'
+  },
+  {
+    name: '⚔️ 修仙世界（玄幻热血）',
+    character: '【人物：肖清雅】\n姓名：肖清雅\n身份：青云宗外门弟子，冰灵根天才\n性格：对旁人冷淡如冰，唯独对亲近的人会露出不同表情。表面高冷，实则内心柔软善良。实力强大但内心孤独，渴望被理解。\n修为：筑基巅峰，冰灵根千年难遇\n武器：冰魄剑，剑身常年寒气缭绕\n口头禅："哼""不关你的事""……好吧"\n秘密：身中寒毒，每月月圆之夜发作，发作时异常脆弱\n\n【人物：林逸尘】\n姓名：林逸尘\n身份：青云宗外门弟子，实为上古剑帝转世\n性格：表面吊儿郎当不务正业，实则心思缜密。重情重义，为朋友两肋插刀。\n修为：目前仅炼气三层，但体内封印着上古剑意\n武器：一把生锈的铁剑（实为上古神兵"灭世"的封印形态）\n口头禅："急什么，先吃顿好的再说""这剑…好像在说话？"',
+    world: '【世界观：天玄大陆】\n- 修仙等级：炼气→筑基→金丹→元婴→化神→渡劫→大乘\n- 五大仙门：青云宗（剑修）、丹鼎宗（炼丹）、万法宗（法术）、天机阁（占卜）、幽冥宗（已叛变）\n- 灵气复苏：三百年前天地异变，灵气浓度骤降，如今正在缓慢恢复\n- 秘境：每隔十年开启"天帝遗迹"，其中藏有上古传承\n- 禁区：北荒魔渊，传说封印着远古魔神',
+    plot: '【剧情线】\n- 开篇：林逸尘被同门欺凌，肖清雅路过出手相救\n- 崭露：宗门大比中林逸尘以炼气修为击败筑基弟子，肖清雅对他另眼相看\n- 入秘境：两人组队进入天帝遗迹，肖清雅寒毒发作，林逸尘用剑意帮她压制\n- 阴谋：幽冥宗渗透青云宗，长老叛变\n- 寒毒：肖清雅寒毒再次发作，林逸尘不顾自身安危用剑意救她，肖清雅第一次在他面前流泪\n- 大战：幽冥宗攻山，肖清雅冰灵根爆发击退强敌，林逸尘剑意觉醒\n- 真相：林逸尘发现自己是剑帝转世，前世与肖清雅有因果\n- 魔渊：魔神封印松动，两人一同前往北荒\n- 决战：肖清雅以冰灵根之力为林逸尘争取时间，林逸尘以剑帝之力重封魔神\n- 结局：肖清雅守在修为尽失的林逸尘身边，两人以凡人之身重新开始'
+  },
+  {
+    name: '🏰 宫廷权谋（古风大女主）',
+    character: '【人物：肖清雅】\n姓名：肖清雅\n身份：前朝丞相之女，现为冷宫宫女（隐藏身份）\n性格：隐忍聪慧，善于伪装。表面温顺如羔羊，内心坚韧。对敌人绝不留情，但对真心待她的人会以命相护。虽然身处险境，仍保有一颗善良的心，会在暗中帮助无辜之人。\n外貌：素颜清丽，一双眼睛似含秋水，左肩有胎记（实为前朝皇室印记）\n特长：精通琴棋书画，暗通医术毒理\n口头禅："奴婢不敢""大人说笑了"（内心：你等着）\n\n【人物：萧衍】\n姓名：萧衍\n身份：当朝九皇子，手握北境兵权\n性格：看似浪荡不羁，实则城府极深。唯一不设防的人是肖清雅。\n秘密：知道肖清雅的真实身份，却选择隐瞒保护',
+    world: '【世界观：大燕王朝】\n- 定都长安，国力强盛但朝堂暗流涌动\n- 皇帝年迈，太子与各皇子夺嫡之争白热化\n- 前朝遗族暗中活动，试图复国\n- 后宫等级：皇后→贵妃→四妃→九嫔→贵人→宫女\n- 北境有蛮族虎视眈眈，需重兵镇守\n- 江湖势力：天机楼（情报）、药王谷（医毒）、影卫（暗杀）',
+    plot: '【剧情线】\n- 开篇：肖清雅以宫女身份入宫，暗中调查父亲冤案真相\n- 遇见：九皇子萧衍在冷宫发现肖清雅的才华，将她调到身边\n- 试探：两人互相试探身份，暗中过招\n- 结盟：发现共同敌人是太子，决定联手\n- 危机：肖清雅身份险些暴露，萧衍出手相救\n- 情动：生死之间萧衍告白，肖清雅第一次动摇复仇之心\n- 反转：发现当年陷害肖家的幕后黑手竟是萧衍的母妃\n- 抉择：肖清雅在复仇与爱情之间挣扎\n- 宫变：太子逼宫，肖清雅以前朝公主身份号令遗族勤王\n- 结局：萧衍登基，肖清雅以皇后身份为肖家平反，两人携手治国'
+  },
+  {
+    name: '🔮 末日求生（科幻废土）',
+    character: '【人物：肖清雅】\n姓名：肖清雅\n身份：地下避难所的医生\n性格：温柔但固执，在绝望的世界里坚持救人不杀人。表面柔弱，内心却比谁都坚强。是陆远的精神支柱，也是废土上最后的光。\n外貌：短发利落，总穿一件洗得发白的白大褂，眼神温暖而坚定\n秘密：体内有变异基因，正在缓慢异化，她瞒着所有人\n口头禅："先救人再说""我没事，真的"\n\n【人物：陆远】\n姓名：陆远\n身份：前军事工程师，现为废土拾荒者\n性格：沉默寡言但内心善良，信奉"能救一个是一个"。技术宅，擅长改装武器和机械。\n装备：自制外骨骼装甲（用汽车零件拼的）、改装电磁步枪\n能力：机械工程专家，能用手边废料造出任何东西\n弱点：左臂在核爆中受伤，需要定期注射抑制剂\n口头禅："先修好这个再说""别碰，会炸"',
+    world: '【世界观：灰烬纪元】\n- 2077年核战爆发，文明崩塌，地表辐射严重\n- 幸存者分为：地表拾荒者、地下避难所居民、变异者\n- 变异者：受辐射影响产生基因变异的人类，被正常人类排斥\n- 资源极度匮乏：干净的水和食物比黄金珍贵\n- 传说：北方有一座"绿洲城"，辐射值为零，但无人证实\n- 威胁：变异兽群正在南迁，所过之处寸草不生',
+    plot: '【剧情线】\n- 开篇：陆远在废墟中救下被变异兽围攻的肖清雅\n- 同行：肖清雅要去北方寻找绿洲城的线索，陆远被说服同行\n- 避难所：途中发现一个避难所，但里面的人已经疯狂\n- 线索：在避难所找到绿洲城的坐标，但需要穿越变异兽领地\n- 异变：肖清雅的变异开始加速，陆远发现她的秘密\n- 抉择：肖清雅不想连累陆远，独自离开\n- 追寻：陆远放弃安全路线，深入变异区寻找肖清雅\n- 绿洲：两人终于到达绿洲城，发现这里能治愈变异\n- 真相：绿洲城的建立者正是核战的始作俑者\n- 结局：陆远用工程师身份修复绿洲的净化系统，肖清雅痊愈，两人在绿洲城建立新家园'
+  },
+  {
+    name: '🎭 都市异能（现代奇幻）',
+    character: '【人物：肖清雅】\n姓名：肖清雅\n身份：神秘少女，自称"引路人"\n性格：古灵精怪，说话半真半假，但骨子里善良温柔。总是出现在顾言接单的地方，似乎知道一切。嘴上说"才不是在帮你"，但每次都默默出手。\n外貌：银白色长发，瞳孔是淡金色，总穿白色连衣裙\n秘密：她不是人类，是守护城市的灵体，正在慢慢消散\n口头禅："才不是在帮你呢""哼，你自己看着办吧"\n\n【人物：顾言】\n姓名：顾言\n身份：大三学生 / 兼职"灵异事件处理员"\n性格：毒舌但心软，嘴上嫌弃活儿多但每次都接。对钱很执着（因为要还助学贷款），但关键时刻从不退缩。\n异能："言灵"——说出口的话会变成现实，但代价是等量的寿命\n外貌：普通大学生模样，总戴一副黑框眼镜，背包里永远装着零食\n弱点：每次使用言灵后都会嗜睡，用多了会咳血\n口头禅："这单多少钱？""我拒绝…好吧，先付定金"',
+    world: '【世界观：暗面都市】\n- 表面是普通现代都市，暗面有各种灵异生物共存\n- 灵异等级：游魂（无害）→怨灵（危险）→厉鬼（致命）→灾厄（灭城级）\n- 管理机构："秩序局"——官方灵异事件处理部门，但效率低下\n- 地下组织："渡鸦"——民间异能者联盟，顾言的接单平台\n- 规则：异能者不能对普通人使用能力，违者被秩序局追杀\n- 城市秘密：这座城市的地脉正在枯竭，灵异事件频发不是偶然',
+    plot: '【剧情线】\n- 开篇：顾言接到一个看似简单的驱鬼单子，却意外遇到肖清雅\n- 升级：怨灵变异为厉鬼，顾言被迫使用言灵，肖清雅出手相助\n- 组队：肖清雅提出合作，帮顾言接更好的单子，条件是帮她找东西\n- 深入：调查中发现城市地脉异常，灵异事件越来越严重\n- 真相：秩序局高层在故意破坏地脉，用灵异能量维持自己的权力\n- 暴露：顾言的言灵被秩序局发现，成为追杀目标\n- 肖清雅的秘密：肖清雅就是地脉的化身，她正在消散因为地脉在枯竭\n- 抉择：顾言可以用言灵修复地脉，但代价是自己的全部寿命\n- 转机：渡鸦联盟全员出动，为顾言争取时间\n- 结局：顾言用言灵修复地脉但陷入昏迷，肖清雅用地脉之力救回他，两人约定守护这座城市'
+  }
+];
+
+// ========== 模型配置 ==========
+var MODEL_OPTIONS = {
+  deepseek: [
+    { value: 'deepseek-chat', label: 'DeepSeek Chat' },
+    { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner' }
+  ],
+  zhipu: [
+    { value: 'glm-4-flash', label: 'GLM-4-Flash (免费)' },
+    { value: 'glm-4-air', label: 'GLM-4-Air' },
+    { value: 'glm-4-plus', label: 'GLM-4-Plus' },
+    { value: 'glm-4', label: 'GLM-4' }
+  ],
+  qwen: [
+    { value: 'qwen-turbo', label: 'Qwen Turbo' },
+    { value: 'qwen-plus', label: 'Qwen Plus' },
+    { value: 'qwen-max', label: 'Qwen Max' }
+  ]
+};
+
+// ========== TF-IDF 向量化器 ==========
+function TFIDFVectorizer() {
+  this.vocabulary = {};
+  this.idf = {};
+  this.docCount = 0;
+}
+
+TFIDFVectorizer.prototype.tokenize = function(text) {
+  var tokens = [];
+  var chinese = text.match(/[\u4e00-\u9fff]+/g) || [];
+  for (var ci = 0; ci < chinese.length; ci++) {
+    var seg = chinese[ci];
+    for (var i = 0; i < seg.length; i++) {
+      tokens.push(seg[i]);
+      if (i < seg.length - 1) tokens.push(seg[i] + seg[i + 1]);
+    }
+  }
+  var english = text.match(/[a-zA-Z]+/g) || [];
+  for (var ei = 0; ei < english.length; ei++) {
+    tokens.push(english[ei].toLowerCase());
+  }
+  return tokens;
+};
+
+TFIDFVectorizer.prototype.computeTF = function(tokens) {
+  var tf = {};
+  for (var i = 0; i < tokens.length; i++) {
+    tf[tokens[i]] = (tf[tokens[i]] || 0) + 1;
+  }
+  var len = tokens.length || 1;
+  var keys = Object.keys(tf);
+  for (var k = 0; k < keys.length; k++) {
+    tf[keys[k]] /= len;
+  }
+  return tf;
+};
+
+TFIDFVectorizer.prototype.fit = function(documents) {
+  this.docCount = documents.length;
+  var df = {};
+  for (var d = 0; d < documents.length; d++) {
+    var tokens = this.tokenize(documents[d]);
+    var seen = {};
+    for (var t = 0; t < tokens.length; t++) {
+      if (!seen[tokens[t]]) {
+        df[tokens[t]] = (df[tokens[t]] || 0) + 1;
+        seen[tokens[t]] = true;
+      }
+    }
+  }
+  var terms = Object.keys(df);
+  for (var i = 0; i < terms.length; i++) {
+    this.idf[terms[i]] = Math.log((this.docCount + 1) / (df[terms[i]] + 1)) + 1;
+  }
+  this.vocabulary = Object.keys(this.idf);
+};
+
+TFIDFVectorizer.prototype.transform = function(text) {
+  var tokens = this.tokenize(text);
+  var tf = this.computeTF(tokens);
+  var vec = {};
+  var keys = Object.keys(tf);
+  for (var i = 0; i < keys.length; i++) {
+    if (this.idf[keys[i]]) {
+      vec[keys[i]] = tf[keys[i]] * this.idf[keys[i]];
+    }
+  }
+  return vec;
+};
+
+// ========== 余弦相似度 ==========
+function cosineSimilarity(vecA, vecB) {
+  var dotProduct = 0, normA = 0, normB = 0;
+  var keysA = Object.keys(vecA);
+  for (var i = 0; i < keysA.length; i++) {
+    var k = keysA[i];
+    if (vecB[k]) dotProduct += vecA[k] * vecB[k];
+    normA += vecA[k] * vecA[k];
+  }
+  var keysB = Object.keys(vecB);
+  for (var j = 0; j < keysB.length; j++) {
+    normB += vecB[keysB[j]] * vecB[keysB[j]];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+// ========== 语义分块器 ==========
+function SemanticChunker() {}
+
+SemanticChunker.prototype.chunkByType = function(text, type) {
+  var sections = text.split(/\n{2,}/);
+  var result = [];
+  for (var i = 0; i < sections.length; i++) {
+    var s = sections[i].trim();
+    if (s) result.push({ content: s, type: type, tokens: s.length });
+  }
+  return result;
+};
+
+SemanticChunker.prototype.hierarchicalChunk = function(text, type, maxChunkSize) {
+  maxChunkSize = maxChunkSize || 500;
+  var chunks = this.chunkByType(text, type);
+  var result = [];
+  for (var i = 0; i < chunks.length; i++) {
+    var chunk = chunks[i];
+    if (chunk.content.length > maxChunkSize) {
+      var sentences = chunk.content.split(/[。！？\n]/);
+      var current = '';
+      for (var s = 0; s < sentences.length; s++) {
+        if ((current + sentences[s]).length > maxChunkSize && current) {
+          result.push({ content: current.trim(), type: type, tokens: current.trim().length });
+          current = sentences[s];
+        } else {
+          current += sentences[s] + '。';
+        }
+      }
+      if (current.trim()) result.push({ content: current.trim(), type: type, tokens: current.trim().length });
+    } else {
+      result.push(chunk);
+    }
+  }
+  return result;
+};
+
+// ========== RAG 引擎 ==========
+function RAGEngine() {
+  this.chunks = [];
+  this.vectorizer = new TFIDFVectorizer();
+  this.chunkVectors = [];
+}
+
+RAGEngine.prototype.index = function(chunks) {
+  this.chunks = chunks;
+  var texts = [];
+  for (var i = 0; i < chunks.length; i++) texts.push(chunks[i].content);
+  this.vectorizer.fit(texts);
+  this.chunkVectors = [];
+  for (var j = 0; j < texts.length; j++) {
+    this.chunkVectors.push(this.vectorizer.transform(texts[j]));
+  }
+};
+
+RAGEngine.prototype.search = function(query, topK) {
+  topK = topK || 5;
+  var queryVec = this.vectorizer.transform(query);
+  var queryTokens = this.vectorizer.tokenize(query);
+  var scores = [];
+
+  for (var i = 0; i < this.chunkVectors.length; i++) {
+    var semanticScore = cosineSimilarity(queryVec, this.chunkVectors[i]);
+    var chunkTokens = this.vectorizer.tokenize(this.chunks[i].content);
+    var keywordScore = 0;
+    for (var q = 0; q < queryTokens.length; q++) {
+      if (chunkTokens.indexOf(queryTokens[q]) !== -1) keywordScore += 0.1;
+    }
+    keywordScore = Math.min(keywordScore, 1);
+    scores.push({ index: i, score: semanticScore * 0.7 + keywordScore * 0.3 });
+  }
+
+  scores.sort(function(a, b) { return b.score - a.score; });
+
+  var results = [];
+  var count = Math.min(topK, scores.length);
+  for (var r = 0; r < count; r++) {
+    results.push({
+      chunk: this.chunks[scores[r].index],
+      score: scores[r].score,
+      vectorIndex: scores[r].index
+    });
+  }
+  return results;
+};
+
+// ========== 小说生成器 ==========
+function NovelGenerator() {
+  this.ragEngine = new RAGEngine();
+  this.chunker = new SemanticChunker();
+  this.apiConfig = null;
+  this.outline = '';
+  this.chapters = [];
+  this.settings = { character: '', world: '', plot: '' };
+  this.allChunks = [];
+}
+
+NovelGenerator.prototype.setApiConfig = function(config) {
+  this.apiConfig = config;
+};
+
+NovelGenerator.prototype.callLLM = function(messages, temperature) {
+  temperature = temperature || 0.8;
+  var config = this.apiConfig;
+  if (!config || !config.apiKey) {
+    return Promise.reject(new Error('请先配置 API Key'));
+  }
+  var apiUrl, model;
+
+  if (config.provider === 'deepseek') {
+    apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+    model = config.model || 'deepseek-chat';
+  } else if (config.provider === 'zhipu') {
+    apiUrl = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+    model = config.model || 'glm-4-flash';
+  } else if (config.provider === 'qwen') {
+    apiUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+    model = config.model || 'qwen-turbo';
+  }
+
+  var self = this;
+  var requestBody = { model: model, messages: messages, temperature: temperature, max_tokens: 2000 };
+
+  return fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + config.apiKey
+    },
+    body: JSON.stringify(requestBody)
+  }).then(function(resp) {
+    if (!resp.ok) {
+      throw new Error('API 请求失败: ' + resp.status);
+    }
+    return resp.json();
+  }).then(function(data) {
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      return data.choices[0].message.content;
+    }
+    throw new Error('API 返回格式异常');
+  }).catch(function(e) {
+    // 尝试服务器代理
+    return fetch('/api/novel/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiUrl: apiUrl, apiKey: config.apiKey, model: model, messages: messages, temperature: temperature, max_tokens: 2000 })
+    }).then(function(resp) {
+      if (!resp.ok) throw new Error('代理请求也失败: ' + resp.status);
+      return resp.json();
+    }).then(function(data) {
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        return data.choices[0].message.content;
+      }
+      throw new Error('代理返回格式异常');
+    }).catch(function(e2) {
+      throw new Error('API 调用失败: ' + e.message + '，代理也失败: ' + e2.message);
+    });
+  });
+};
+
+NovelGenerator.prototype.updateSettings = function(character, world, plot) {
+  this.settings.character = character;
+  this.settings.world = world;
+  this.settings.plot = plot;
+  this.rebuildIndex();
+};
+
+NovelGenerator.prototype.rebuildIndex = function() {
+  this.allChunks = [];
+  if (this.settings.character.trim()) {
+    var charChunks = this.chunker.hierarchicalChunk(this.settings.character, 'character');
+    for (var i = 0; i < charChunks.length; i++) this.allChunks.push(charChunks[i]);
+  }
+  if (this.settings.world.trim()) {
+    var worldChunks = this.chunker.hierarchicalChunk(this.settings.world, 'world');
+    for (var j = 0; j < worldChunks.length; j++) this.allChunks.push(worldChunks[j]);
+  }
+  if (this.settings.plot.trim()) {
+    var plotChunks = this.chunker.hierarchicalChunk(this.settings.plot, 'plot');
+    for (var k = 0; k < plotChunks.length; k++) this.allChunks.push(plotChunks[k]);
+  }
+  if (this.allChunks.length > 0) {
+    this.ragEngine.index(this.allChunks);
+  }
+  // 保存到 localStorage
+  try {
+    localStorage.setItem('novel_chunks', JSON.stringify(this.allChunks));
+  } catch(e) {}
+  return this.allChunks;
+};
+
+NovelGenerator.prototype.buildSettingsPrompt = function() {
+  var context = this.ragEngine.search('小说整体设定 人物 世界观 剧情主线', 10);
+  var settingsText = '';
+  for (var i = 0; i < context.length; i++) {
+    settingsText += '【' + context[i].chunk.type + '】' + context[i].chunk.content + '\n\n';
+  }
+  return '你是一个专业的网络小说作家。请根据以下设定来创作小说。\n\n' + CORE_CHARACTER_RULE + '\n\n【用户提供的小说设定】\n' + settingsText + '\n注意：如果用户设定与上述核心规则冲突，以核心规则为准。女主角必须是肖清雅，且必须保留她的核心性格。';
+};
+
+NovelGenerator.prototype.generateOutline = function(title, chapterCount, style) {
+  var systemPrompt = this.buildSettingsPrompt();
+  var userPrompt = '请为小说《' + title + '》生成一个详细的大纲。\n\n要求：\n- 共 ' + chapterCount + ' 章\n- 风格：' + style + '\n- 每章用"第X章：标题"格式\n- 每章简要描述该章的主要情节（2-3句话）\n- 确保剧情连贯，有起承转合\n- 严格遵循上述设定中的人物性格和世界观';
+  var messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
+  return this.callLLM(messages, 0.8);
+};
+
+NovelGenerator.prototype.generateChapter = function(chapterNum, chapterTitle, chapterOutline) {
+  var query = chapterTitle + ' ' + chapterOutline;
+  var relevantChunks = this.ragEngine.search(query, 5);
+  var contextText = '';
+  for (var i = 0; i < relevantChunks.length; i++) {
+    contextText += '【' + relevantChunks[i].chunk.type + '】' + relevantChunks[i].chunk.content + '\n\n';
+  }
+
+  var systemPrompt = this.buildSettingsPrompt() + '\n\n【当前章节最相关的设定】\n' + contextText;
+
+  var previousChapter = '';
+  if (chapterNum > 1 && this.chapters[chapterNum - 2]) {
+    previousChapter = '\n\n【上一章结尾】\n' + this.chapters[chapterNum - 2].content.slice(-500);
+  }
+
+  var userPrompt = '请写第 ' + chapterNum + ' 章：' + chapterTitle + '\n\n本章大纲：' + chapterOutline + previousChapter + '\n\n要求：\n- 字数 2000-3000 字\n- 严格遵循人物设定和世界观\n- 与前文保持连贯\n- 描写细腻，对话生动\n- 本章要有完整的情节发展';
+
+  var messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
+
+  var self = this;
+  return this.callLLM(messages, 0.85).then(function(content) {
+    return { content: content, relevantChunks: relevantChunks };
+  });
+};
+
+// ========== 全局实例 ==========
+var generator = new NovelGenerator();
+var currentStep = 1;
+var isAutoGenerating = false;
+var parsedChapters = [];
+
+// ========== Toast 通知 ==========
+function showToast(message, type) {
+  type = type || 'info';
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(40px)';
+    toast.style.transition = 'all 0.3s';
+    setTimeout(function() { container.removeChild(toast); }, 300);
+  }, 3000);
+}
+
+// ========== API 设置弹窗 ==========
+function showApiModal() {
+  document.getElementById('apiModal').classList.add('show');
+  loadApiConfigToUI();
+}
+
+function hideApiModal() {
+  document.getElementById('apiModal').classList.remove('show');
+}
+
+function onProviderChange() {
+  var provider = document.getElementById('providerSelect').value;
+  var modelSelect = document.getElementById('modelSelect');
+  var options = MODEL_OPTIONS[provider] || [];
+  modelSelect.innerHTML = '';
+  for (var i = 0; i < options.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = options[i].value;
+    opt.textContent = options[i].label;
+    modelSelect.appendChild(opt);
+  }
+}
+
+function loadApiConfigToUI() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('novel_api_config') || '{}');
+    if (saved.provider) document.getElementById('providerSelect').value = saved.provider;
+    onProviderChange();
+    if (saved.model) document.getElementById('modelSelect').value = saved.model;
+    if (saved.apiKey) document.getElementById('apiKeyInput').value = saved.apiKey;
+  } catch(e) {}
+}
+
+function saveApiConfig() {
+  var config = {
+    provider: document.getElementById('providerSelect').value,
+    apiKey: document.getElementById('apiKeyInput').value.trim(),
+    model: document.getElementById('modelSelect').value
+  };
+  if (!config.apiKey) {
+    showToast('请输入 API Key', 'error');
+    return;
+  }
+  localStorage.setItem('novel_api_config', JSON.stringify(config));
+  generator.setApiConfig(config);
+  showToast('API 配置已保存', 'success');
+  hideApiModal();
+}
+
+function testConnection() {
+  var config = {
+    provider: document.getElementById('providerSelect').value,
+    apiKey: document.getElementById('apiKeyInput').value.trim(),
+    model: document.getElementById('modelSelect').value
+  };
+  if (!config.apiKey) {
+    showToast('请输入 API Key', 'error');
+    return;
+  }
+  var resultDiv = document.getElementById('testResult');
+  resultDiv.innerHTML = '<span class="loading"></span> 测试连接中...';
+  resultDiv.style.color = 'var(--text-muted)';
+
+  generator.setApiConfig(config);
+  generator.callLLM([{ role: 'user', content: '你好，请回复"连接成功"' }], 0.1).then(function(resp) {
+    resultDiv.innerHTML = '✅ 连接成功：' + resp.substring(0, 50);
+    resultDiv.style.color = 'var(--success)';
+  }).catch(function(e) {
+    resultDiv.innerHTML = '❌ 连接失败：' + e.message;
+    resultDiv.style.color = 'var(--error)';
+  });
+}
+
+// ========== 设定管理 ==========
+function loadPreset() {
+  document.getElementById('characterInput').value = PRESET_DATA.character;
+  document.getElementById('worldInput').value = PRESET_DATA.world;
+  document.getElementById('plotInput').value = PRESET_DATA.plot;
+  showToast('肖清雅预设已加载', 'success');
+  indexSettings();
+}
+
+function loadPresetFromLibrary() {
+  var select = document.getElementById('presetSelect');
+  var idx = parseInt(select.value);
+  if (isNaN(idx)) return;
+  var preset = PRESET_LIBRARY[idx];
+  document.getElementById('characterInput').value = preset.character;
+  document.getElementById('worldInput').value = preset.world;
+  document.getElementById('plotInput').value = preset.plot;
+  showToast('"' + preset.name + '" 预设已加载', 'success');
+  indexSettings();
+}
+
+function indexSettings() {
+  var character = document.getElementById('characterInput').value;
+  var world = document.getElementById('worldInput').value;
+  var plot = document.getElementById('plotInput').value;
+
+  generator.updateSettings(character, world, plot);
+  updateChunkDisplay();
+  updateSettingsSummary();
+  showToast('设定已索引，共 ' + generator.allChunks.length + ' 个分块', 'success');
+}
+
+function clearSettings() {
+  if (!confirm('确定要清除所有设定吗？')) return;
+  document.getElementById('characterInput').value = '';
+  document.getElementById('worldInput').value = '';
+  document.getElementById('plotInput').value = '';
+  generator.updateSettings('', '', '');
+  updateChunkDisplay();
+  updateSettingsSummary();
+  showToast('设定已清除', 'info');
+}
+
+function resetAll() {
+  if (!confirm('确定要重新开始吗？\n所有设定、大纲和已生成的章节都将被清除，此操作不可撤销。')) return;
+  // 清除设定
+  document.getElementById('characterInput').value = '';
+  document.getElementById('worldInput').value = '';
+  document.getElementById('plotInput').value = '';
+  document.getElementById('extraRequirements').value = '';
+  // 清除大纲
+  document.getElementById('novelTitle').value = '';
+  document.getElementById('chapterCount').value = '10';
+  document.getElementById('styleDesc').value = '青春校园甜宠治愈系';
+  document.getElementById('outlineDisplay').innerText = '';
+  document.getElementById('outlineCard').style.display = 'none';
+  // 清除章节
+  parsedChapters = [];
+  generator.chapters = [];
+  generator.outline = '';
+  generator.updateSettings('', '', '');
+  // 重置步骤
+  setStep(1);
+  // 清除 RAG 预览
+  document.getElementById('ragEmpty').style.display = '';
+  document.getElementById('ragResults').style.display = 'none';
+  document.getElementById('ragResultList').innerHTML = '';
+  document.getElementById('chapterList').innerHTML = '';
+  document.getElementById('chapterProgress').style.display = 'none';
+  document.getElementById('chapterProgressFill').style.width = '0%';
+  updateChunkDisplay();
+  updateSettingsSummary();
+  // 清除 localStorage
+  localStorage.removeItem('novel_chunks');
+  localStorage.removeItem('novel_outline');
+  localStorage.removeItem('novel_chapters');
+  showToast('已重置，可以开始新小说了', 'success');
+}
+
+function updateChunkDisplay() {
+  var chunks = generator.allChunks;
+  document.getElementById('chunkCount').textContent = chunks.length + ' 个';
+  var list = document.getElementById('chunkList');
+  list.innerHTML = '';
+  for (var i = 0; i < chunks.length; i++) {
+    var item = document.createElement('div');
+    item.className = 'chunk-item';
+    var typeTag = '<span class="tag tag-' + chunks[i].type + '">' +
+      (chunks[i].type === 'character' ? '人物' : chunks[i].type === 'world' ? '世界' : '剧情') + '</span>';
+    item.innerHTML = typeTag + '<div style="margin-top:6px;font-size:12px;color:var(--text-secondary);max-height:60px;overflow:hidden">' +
+      escapeHtml(chunks[i].content.substring(0, 100)) + (chunks[i].content.length > 100 ? '...' : '') + '</div>';
+    list.appendChild(item);
+  }
+}
+
+function updateSettingsSummary() {
+  var charCount = 0, worldCount = 0, plotCount = 0;
+  for (var i = 0; i < generator.allChunks.length; i++) {
+    if (generator.allChunks[i].type === 'character') charCount++;
+    else if (generator.allChunks[i].type === 'world') worldCount++;
+    else if (generator.allChunks[i].type === 'plot') plotCount++;
+  }
+  document.getElementById('charChunkCount').textContent = charCount;
+  document.getElementById('worldChunkCount').textContent = worldCount;
+  document.getElementById('plotChunkCount').textContent = plotCount;
+}
+
+function handleFileUpload(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var name = file.name.toLowerCase();
+    // 简单判断内容类型
+    if (text.indexOf('人物') !== -1 || text.indexOf('性格') !== -1 || text.indexOf('外貌') !== -1) {
+      document.getElementById('characterInput').value += (document.getElementById('characterInput').value ? '\n\n' : '') + text;
+    } else if (text.indexOf('世界') !== -1 || text.indexOf('城市') !== -1 || text.indexOf('背景') !== -1) {
+      document.getElementById('worldInput').value += (document.getElementById('worldInput').value ? '\n\n' : '') + text;
+    } else {
+      document.getElementById('plotInput').value += (document.getElementById('plotInput').value ? '\n\n' : '') + text;
+    }
+    showToast('文件 "' + file.name + '" 已加载', 'success');
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ========== 步骤切换 ==========
+function setStep(step) {
+  currentStep = step;
+  for (var i = 1; i <= 3; i++) {
+    var indicator = document.getElementById('step' + i + 'Indicator');
+    var content = document.getElementById('step' + i + 'Content');
+    indicator.className = 'step' + (i < step ? ' completed' : i === step ? ' active' : '');
+    content.className = 'step-content' + (i === step ? ' active' : '');
+  }
+  if (document.getElementById('line1')) {
+    document.getElementById('line1').className = 'step-line' + (step > 1 ? ' active' : '');
+  }
+  if (document.getElementById('line2')) {
+    document.getElementById('line2').className = 'step-line' + (step > 2 ? ' active' : '');
+  }
+}
+
+function goToStep2() {
+  if (generator.allChunks.length === 0) {
+    showToast('请先索引设定', 'error');
+    return;
+  }
+  setStep(2);
+}
+
+function goToStep3() {
+  var outlineText = document.getElementById('outlineDisplay').innerText.trim();
+  if (!outlineText) {
+    showToast('请先生成大纲', 'error');
+    return;
+  }
+  generator.outline = outlineText;
+  try { localStorage.setItem('novel_outline', outlineText); } catch(e) {}
+  parseOutline(outlineText);
+  renderChapterList();
+  setStep(3);
+}
+
+// ========== 大纲生成 ==========
+function generateOutline() {
+  var title = document.getElementById('novelTitle').value.trim();
+  var count = parseInt(document.getElementById('chapterCount').value) || 10;
+  var style = document.getElementById('styleDesc').value.trim();
+
+  if (!title) { showToast('请输入小说标题', 'error'); return; }
+  if (!generator.apiConfig || !generator.apiConfig.apiKey) { showToast('请先配置 API', 'error'); showApiModal(); return; }
+
+  var btn = document.getElementById('genOutlineBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading"></span> 生成中...';
+
+  generator.generateOutline(title, count, style).then(function(outline) {
+    document.getElementById('outlineDisplay').innerText = outline;
+    document.getElementById('outlineCard').style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '✨ 生成大纲';
+    showToast('大纲生成完成', 'success');
+  }).catch(function(e) {
+    btn.disabled = false;
+    btn.innerHTML = '✨ 生成大纲';
+    showToast('生成失败: ' + e.message, 'error');
+  });
+}
+
+// ========== 大纲解析 ==========
+function parseOutline(outlineText) {
+  parsedChapters = [];
+  var lines = outlineText.split('\n');
+  var currentChapter = null;
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    var match = line.match(/第(\d+)[章节][：:]\s*(.+)/);
+    if (match) {
+      if (currentChapter) parsedChapters.push(currentChapter);
+      currentChapter = {
+        num: parseInt(match[1]),
+        title: match[2].trim(),
+        outline: '',
+        content: '',
+        status: 'pending'
+      };
+    } else if (currentChapter && line) {
+      currentChapter.outline += (currentChapter.outline ? ' ' : '') + line;
+    }
+  }
+  if (currentChapter) parsedChapters.push(currentChapter);
+
+  // 如果解析不到章节，按段落拆分
+  if (parsedChapters.length === 0) {
+    var paragraphs = outlineText.split(/\n{2,}/);
+    for (var p = 0; p < paragraphs.length; p++) {
+      if (paragraphs[p].trim()) {
+        parsedChapters.push({
+          num: p + 1,
+          title: '第' + (p + 1) + '章',
+          outline: paragraphs[p].trim(),
+          content: '',
+          status: 'pending'
+        });
+      }
+    }
+  }
+
+  // 同步到 generator
+  generator.chapters = [];
+  for (var c = 0; c < parsedChapters.length; c++) {
+    generator.chapters.push({ content: '' });
+  }
+}
+
+// ========== 章节列表渲染 ==========
+function renderChapterList() {
+  var list = document.getElementById('chapterList');
+  list.innerHTML = '';
+
+  for (var i = 0; i < parsedChapters.length; i++) {
+    var ch = parsedChapters[i];
+    var item = document.createElement('div');
+    item.className = 'chapter-item' + (ch.status === 'generating' ? ' generating' : '');
+    item.id = 'chapterItem_' + i;
+
+    var statusText = ch.status === 'pending' ? '⏳ 待生成' : ch.status === 'generating' ? '⏳ 生成中...' : '✅ 已完成';
+    var statusClass = 'chapter-status ' + ch.status;
+
+    var actionsHtml = '';
+    if (ch.status === 'completed') {
+      actionsHtml = '<button class="btn btn-sm" onclick="toggleChapterContent(' + i + ')">📖 查看</button>' +
+        '<button class="btn btn-sm" onclick="regenerateChapter(' + i + ')">🔄</button>';
+    }
+
+    item.innerHTML = '<div class="chapter-info">' +
+      '<div class="chapter-title">第' + ch.num + '章：' + escapeHtml(ch.title) + '</div>' +
+      '<div class="' + statusClass + '">' + statusText + '</div>' +
+      '</div>' +
+      '<div class="chapter-actions">' + actionsHtml + '</div>';
+
+    if (ch.status === 'completed' && ch.content) {
+      var contentDiv = document.createElement('div');
+      contentDiv.className = 'chapter-content';
+      contentDiv.id = 'chapterContent_' + i;
+      contentDiv.contentEditable = true;
+      contentDiv.innerText = ch.content;
+      contentDiv.onblur = (function(idx) {
+        return function() {
+          parsedChapters[idx].content = this.innerText;
+          generator.chapters[idx] = { content: this.innerText };
+          saveChapters();
+        };
+      })(i);
+      item.appendChild(contentDiv);
+    }
+
+    list.appendChild(item);
+  }
+
+  updateProgress();
+}
+
+function toggleChapterContent(idx) {
+  var el = document.getElementById('chapterContent_' + idx);
+  if (el) el.classList.toggle('show');
+}
+
+function updateProgress() {
+  var completed = 0;
+  for (var i = 0; i < parsedChapters.length; i++) {
+    if (parsedChapters[i].status === 'completed') completed++;
+  }
+  var total = parsedChapters.length;
+  if (total > 0) {
+    document.getElementById('chapterProgress').style.display = 'block';
+    document.getElementById('chapterProgressFill').style.width = Math.round(completed / total * 100) + '%';
+  }
+}
+
+// ========== 章节生成 ==========
+function generateNextChapter() {
+  var nextIdx = -1;
+  for (var i = 0; i < parsedChapters.length; i++) {
+    if (parsedChapters[i].status === 'pending') { nextIdx = i; break; }
+  }
+  if (nextIdx === -1) { showToast('所有章节已生成', 'info'); return; }
+  if (!generator.apiConfig || !generator.apiConfig.apiKey) { showToast('请先配置 API', 'error'); showApiModal(); return; }
+
+  generateSingleChapter(nextIdx);
+}
+
+function generateSingleChapter(idx) {
+  var ch = parsedChapters[idx];
+  ch.status = 'generating';
+  renderChapterList();
+
+  document.getElementById('genNextBtn').disabled = true;
+
+  generator.generateChapter(ch.num, ch.title, ch.outline).then(function(result) {
+    ch.content = result.content;
+    ch.status = 'completed';
+    generator.chapters[idx] = { content: result.content };
+    saveChapters();
+    renderChapterList();
+    updateRagPreview(result.relevantChunks, ch.title + ' ' + ch.outline);
+    document.getElementById('genNextBtn').disabled = false;
+    showToast('第' + ch.num + '章生成完成', 'success');
+  }).catch(function(e) {
+    ch.status = 'pending';
+    renderChapterList();
+    document.getElementById('genNextBtn').disabled = false;
+    showToast('生成失败: ' + e.message, 'error');
+  });
+}
+
+function regenerateChapter(idx) {
+  if (!generator.apiConfig || !generator.apiConfig.apiKey) { showToast('请先配置 API', 'error'); showApiModal(); return; }
+  parsedChapters[idx].status = 'pending';
+  parsedChapters[idx].content = '';
+  generateSingleChapter(idx);
+}
+
+// ========== 自动连续生成 ==========
+function autoGenerate() {
+  if (!generator.apiConfig || !generator.apiConfig.apiKey) { showToast('请先配置 API', 'error'); showApiModal(); return; }
+
+  isAutoGenerating = true;
+  document.getElementById('autoGenBtn').style.display = 'none';
+  document.getElementById('stopAutoBtn').style.display = '';
+  document.getElementById('genNextBtn').disabled = true;
+
+  autoGenerateNext();
+}
+
+function autoGenerateNext() {
+  if (!isAutoGenerating) return;
+  var nextIdx = -1;
+  for (var i = 0; i < parsedChapters.length; i++) {
+    if (parsedChapters[i].status === 'pending') { nextIdx = i; break; }
+  }
+  if (nextIdx === -1) {
+    stopAutoGenerate();
+    showToast('所有章节已生成完毕！', 'success');
+    return;
+  }
+
+  var ch = parsedChapters[nextIdx];
+  ch.status = 'generating';
+  renderChapterList();
+
+  generator.generateChapter(ch.num, ch.title, ch.outline).then(function(result) {
+    if (!isAutoGenerating) return;
+    ch.content = result.content;
+    ch.status = 'completed';
+    generator.chapters[nextIdx] = { content: result.content };
+    saveChapters();
+    renderChapterList();
+    updateRagPreview(result.relevantChunks, ch.title + ' ' + ch.outline);
+    showToast('第' + ch.num + '章生成完成', 'success');
+    setTimeout(autoGenerateNext, 1500);
+  }).catch(function(e) {
+    if (!isAutoGenerating) return;
+    ch.status = 'pending';
+    renderChapterList();
+    showToast('第' + ch.num + '章生成失败: ' + e.message, 'error');
+    stopAutoGenerate();
+  });
+}
+
+function stopAutoGenerate() {
+  isAutoGenerating = false;
+  document.getElementById('autoGenBtn').style.display = '';
+  document.getElementById('stopAutoBtn').style.display = 'none';
+  document.getElementById('genNextBtn').disabled = false;
+}
+
+// ========== RAG 检索预览 ==========
+function updateRagPreview(results, query) {
+  document.getElementById('ragEmpty').style.display = 'none';
+  document.getElementById('ragResults').style.display = 'block';
+  document.getElementById('ragQuery').textContent = query.substring(0, 30) + (query.length > 30 ? '...' : '');
+
+  var list = document.getElementById('ragResultList');
+  list.innerHTML = '';
+
+  for (var i = 0; i < results.length; i++) {
+    var r = results[i];
+    var typeLabel = r.chunk.type === 'character' ? '人物' : r.chunk.type === 'world' ? '世界' : '剧情';
+    var typeClass = 'tag-' + r.chunk.type;
+    var scorePercent = Math.round(r.score * 100);
+
+    var item = document.createElement('div');
+    item.className = 'rag-result';
+    item.innerHTML = '<div class="rag-header">' +
+      '<span class="tag ' + typeClass + '">' + typeLabel + '</span>' +
+      '<span class="rag-score">' + scorePercent + '%</span>' +
+      '</div>' +
+      '<div class="rag-content">' + highlightKeywords(r.chunk.content.substring(0, 150), query) + (r.chunk.content.length > 150 ? '...' : '') + '</div>' +
+      '<div class="score-bar"><div class="score-bar-fill" style="width:' + scorePercent + '%"></div></div>';
+    list.appendChild(item);
+  }
+}
+
+function highlightKeywords(text, query) {
+  var tokens = generator.ragEngine.vectorizer.tokenize(query);
+  var result = text;
+  for (var i = 0; i < tokens.length; i++) {
+    if (tokens[i].length >= 2) {
+      var regex = new RegExp(escapeRegex(tokens[i]), 'g');
+      result = result.replace(regex, '<span class="highlight">' + tokens[i] + '</span>');
+    }
+  }
+  return result;
+}
+
+function manualRagSearch() {
+  var query = document.getElementById('manualSearch').value.trim();
+  if (!query) return;
+  if (generator.allChunks.length === 0) { showToast('请先索引设定', 'error'); return; }
+
+  var results = generator.ragEngine.search(query, 5);
+  var container = document.getElementById('manualSearchResults');
+  container.innerHTML = '';
+
+  for (var i = 0; i < results.length; i++) {
+    var r = results[i];
+    var typeLabel = r.chunk.type === 'character' ? '人物' : r.chunk.type === 'world' ? '世界' : '剧情';
+    var typeClass = 'tag-' + r.chunk.type;
+    var scorePercent = Math.round(r.score * 100);
+
+    var item = document.createElement('div');
+    item.className = 'rag-result';
+    item.innerHTML = '<div class="rag-header">' +
+      '<span class="tag ' + typeClass + '">' + typeLabel + '</span>' +
+      '<span class="rag-score">' + scorePercent + '%</span>' +
+      '</div>' +
+      '<div class="rag-content">' + highlightKeywords(r.chunk.content.substring(0, 200), query) + (r.chunk.content.length > 200 ? '...' : '') + '</div>' +
+      '<div class="score-bar"><div class="score-bar-fill" style="width:' + scorePercent + '%"></div></div>';
+    container.appendChild(item);
+  }
+}
+
+// ========== 导出 ==========
+function showExportModal() {
+  document.getElementById('exportModal').classList.add('show');
+  var info = document.getElementById('exportInfo');
+  var completedCount = 0;
+  for (var i = 0; i < parsedChapters.length; i++) {
+    if (parsedChapters[i].status === 'completed') completedCount++;
+  }
+  info.textContent = '当前已完成 ' + completedCount + ' / ' + parsedChapters.length + ' 章';
+}
+
+function hideExportModal() {
+  document.getElementById('exportModal').classList.remove('show');
+}
+
+function exportNovel(format) {
+  var title = document.getElementById('novelTitle').value.trim() || '未命名小说';
+  var content = '';
+
+  if (format === 'md') {
+    content += '# ' + title + '\n\n';
+    content += '## 设定\n\n';
+    content += '### 人物设定\n\n' + generator.settings.character + '\n\n';
+    content += '### 世界观\n\n' + generator.settings.world + '\n\n';
+    if (generator.settings.plot) content += '### 剧情线\n\n' + generator.settings.plot + '\n\n';
+    content += '## 大纲\n\n' + generator.outline + '\n\n';
+    content += '## 正文\n\n';
+    for (var i = 0; i < parsedChapters.length; i++) {
+      if (parsedChapters[i].content) {
+        content += '### 第' + parsedChapters[i].num + '章：' + parsedChapters[i].title + '\n\n';
+        content += parsedChapters[i].content + '\n\n';
+      }
+    }
+  } else {
+    content += title + '\n' + '='.repeat(title.length * 2) + '\n\n';
+    content += '【设定】\n\n人物设定：\n' + generator.settings.character + '\n\n世界观：\n' + generator.settings.world + '\n\n';
+    if (generator.settings.plot) content += '剧情线：\n' + generator.settings.plot + '\n\n';
+    content += '【大纲】\n\n' + generator.outline + '\n\n';
+    content += '【正文】\n\n';
+    for (var j = 0; j < parsedChapters.length; j++) {
+      if (parsedChapters[j].content) {
+        content += '第' + parsedChapters[j].num + '章：' + parsedChapters[j].title + '\n';
+        content += '-'.repeat(30) + '\n\n';
+        content += parsedChapters[j].content + '\n\n';
+      }
+    }
+  }
+
+  var blob = new Blob([content], { type: format === 'md' ? 'text/markdown' : 'text/plain', charset: 'utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = title + '.' + format;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('导出成功', 'success');
+  hideExportModal();
+}
+
+// ========== 数据持久化 ==========
+function saveChapters() {
+  try {
+    var data = [];
+    for (var i = 0; i < parsedChapters.length; i++) {
+      data.push({
+        num: parsedChapters[i].num,
+        title: parsedChapters[i].title,
+        outline: parsedChapters[i].outline,
+        content: parsedChapters[i].content,
+        status: parsedChapters[i].status
+      });
+    }
+    localStorage.setItem('novel_chapters', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadSavedData() {
+  // 加载 API 配置
+  try {
+    var savedConfig = JSON.parse(localStorage.getItem('novel_api_config') || '{}');
+    if (savedConfig.apiKey) generator.setApiConfig(savedConfig);
+  } catch(e) {}
+
+  // 加载设定
+  try {
+    var savedChunks = JSON.parse(localStorage.getItem('novel_chunks') || '[]');
+    if (savedChunks.length > 0) {
+      generator.allChunks = savedChunks;
+      generator.ragEngine.index(savedChunks);
+      updateChunkDisplay();
+      updateSettingsSummary();
+    }
+  } catch(e) {}
+
+  // 加载大纲
+  try {
+    var savedOutline = localStorage.getItem('novel_outline') || '';
+    if (savedOutline) {
+      document.getElementById('outlineDisplay').innerText = savedOutline;
+      document.getElementById('outlineCard').style.display = 'block';
+      generator.outline = savedOutline;
+    }
+  } catch(e) {}
+
+  // 加载章节
+  try {
+    var savedChapters = JSON.parse(localStorage.getItem('novel_chapters') || '[]');
+    if (savedChapters.length > 0) {
+      parsedChapters = savedChapters;
+      generator.chapters = [];
+      for (var i = 0; i < savedChapters.length; i++) {
+        generator.chapters.push({ content: savedChapters[i].content || '' });
+      }
+      renderChapterList();
+      setStep(3);
+    }
+  } catch(e) {}
+}
+
+// ========== 工具函数 ==========
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ========== 初始化 ==========
+window.onload = function() {
+  onProviderChange();
+  loadSavedData();
+  // 填充预设选择器
+  var presetSelect = document.getElementById('presetSelect');
+  for (var i = 0; i < PRESET_LIBRARY.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = PRESET_LIBRARY[i].name;
+    presetSelect.appendChild(opt);
+  }
+};
+</script>
+</body>
+</html>

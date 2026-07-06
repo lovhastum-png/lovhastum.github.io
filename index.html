@@ -1,94 +1,127 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050914" />
+    <title>绯色心弦 · 肖清雅的疗愈小站</title>
+    <link rel="preload" as="image" href="./xiaoqingya/zhuye.png" />
+    <link rel="preload" as="image" href="./src/assets/backgrounds/bg-breath-water.webp" />
+    <link rel="preload" as="image" href="./src/assets/backgrounds/bg-card-tabletop.webp" />
+    <link rel="preload" as="image" href="./src/assets/backgrounds/bg-desk-courtyard.webp" />
+    <link rel="preload" as="image" href="./src/assets/backgrounds/bg-explore-stream.webp" />
+    <link rel="preload" as="image" href="./src/assets/backgrounds/bg-lab-night-studio.webp" />
+    <link rel="preload" as="image" href="./src/assets/backgrounds/bg-labels-wall.webp" />
+    <link rel="preload" as="image" href="./src/assets/backgrounds/bg-release-room.webp" />
+    <link rel="preload" as="image" href="./src/assets/backgrounds/bg-supply-environment.webp" />
+    <link rel="preload" as="image" href="./src/assets/backgrounds/bg-window-lakeside.webp" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23050914'/%3E%3Ccircle cx='32' cy='22' r='7' fill='%23f1d18a'/%3E%3Cpath d='M18 46c3-10 25-10 28 0' fill='none' stroke='%23f1d18a' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./src/css/base.css" />
+    <link rel="stylesheet" href="./src/css/layout.css" />
+    <link rel="stylesheet" href="./src/css/components.css" />
+    <link rel="stylesheet" href="./src/css/pages.css" />
+    <link rel="stylesheet" href="./src/css/animations.css" />
+  </head>
+  <body>
+    <div class="global-scene" id="globalScene" aria-hidden="true">
+      <img class="scene-background is-active" data-scene-buffer="0" src="./xiaoqingya/zhuye.png" alt="" decoding="async" draggable="false" />
+      <img class="scene-background" data-scene-buffer="1" alt="" decoding="async" draggable="false" />
+    </div>
+    <div class="page-frame" aria-hidden="true"></div>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>星旅者 · 星际考古实验室</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/anim.css" />
+    <header class="topbar glass-panel" aria-label="主导航">
+      <button class="brand" type="button" data-route="home" aria-label="返回首页">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-copy">
+          <strong>绯色心弦</strong>
+          <small>CRIMSON HEARTSTRINGS</small>
+        </span>
+      </button>
 
-  <style>
-    /* 【修改点1】强制修正标题位置为正中心 */
-    body.home .home-header {
-      position: absolute;
-      top: 35% !important;
-      /* 垂直居中 */
-      left: 50% !important;
-      /* 水平居中 */
-      transform: translate(-50%, -50%) !important;
-      margin: 0;
-      z-index: 20;
-      /* 初始透明，交给 jQuery 控制显示，防止 CSS 动画失效导致空白 */
-      opacity: 0;
-    }
+      <nav class="nav-list" id="navList" aria-label="站内页面切换">
+        <button type="button" data-route="home" data-nav-key="home">首页</button>
+        <button type="button" data-route="explore" data-nav-key="explore">探索</button>
+        <button type="button" data-route="lab" data-nav-key="lab">情绪调配</button>
+        <button type="button" data-panel="inspiration" data-nav-key="inspiration">灵感小站</button>
+        <button type="button" data-panel="about" data-nav-key="about">关于我们</button>
+      </nav>
 
-    /* 调整下方导航栏的位置，避免挡住标题 */
-    body.home .home-main {
-      top: 85vh !important;
-      /* 下移到底部 */
-    }
-  </style>
-</head>
-
-<body class="home">
-  <div class="home-bg"></div>
-  <canvas id="home-stars" class="home-stars-layer"></canvas>
-
-  <div class="home-layout">
-    <header class="home-header">
-      <div id="mainLogo" class="home-logo">星旅者</div>
-      <div class="home-subtitle">STAR TRAVELER · DEEP SPACE ARCHIVE LAB</div>
+      <div class="night-pill" aria-label="夜间提醒">
+        <span aria-hidden="true">♡</span>
+        只要是为了爱，规则稍微弯曲一下也没关系
+      </div>
     </header>
 
-    <main class="home-main">
-      <nav class="nav-row">
-        <a href="starmap.html" class="nav-pill">
-          <h2>星图探索</h2>
-          <p>锁定恒星，开启旅程</p>
-        </a>
-        <a href="game.html" class="nav-pill">
-          <h2>观测实验</h2>
-          <p>深空数据判读</p>
-        </a>
-        <a href="detail.html" class="nav-pill">
-          <h2>档案馆</h2>
-          <p>回顾任务记录</p>
-        </a>
-      </nav>
-    </main>
-  </div>
+    <main class="app-root" id="app" tabindex="-1"></main>
 
-  <script src="js/home-stars.js"></script>
+    <div class="drawer-shell" id="feelingDrawer" hidden>
+      <button class="drawer-backdrop" type="button" data-close-panel aria-label="关闭感觉选择"></button>
+      <section class="feeling-drawer glass-panel" role="dialog" aria-modal="true" aria-labelledby="feelingTitle">
+        <header class="drawer-head">
+          <div>
+            <span class="section-kicker">CHOOSE A FEELING</span>
+            <h2 id="feelingTitle">此刻，更接近哪一种感觉？</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-panel aria-label="关闭">×</button>
+        </header>
+        <p class="feeling-lead">不必选得很准确。只是从这里，去一个更适合今晚的地方。</p>
+        <div class="feeling-grid">
+          <button type="button" data-go="breath"><span>◌</span><strong>有点紧绷</strong><small>去静息区</small></button>
+          <button type="button" data-go="desk"><span>✎</span><strong>脑子很乱</strong><small>去安静书案</small></button>
+          <button type="button" data-go="labels"><span>◇</span><strong>被定义压住</strong><small>去标签回收口</small></button>
+          <button type="button" data-go="release"><span>◎</span><strong>想把压力放下</strong><small>去情绪释放室</small></button>
+          <button type="button" data-go="supply"><span>▤</span><strong>需要一点补给</strong><small>去夜间补给柜</small></button>
+          <button type="button" data-go="window"><span>☾</span><strong>想先说一句</strong><small>去值班窗口</small></button>
+          <button type="button" data-go="novel"><span>✦</span><strong>想写点东西</strong><small>去小说工坊</small></button>
+        </div>
+      </section>
+    </div>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <div class="drawer-shell" id="inspirationDrawer" hidden>
+      <button class="drawer-backdrop" type="button" data-close-panel aria-label="关闭灵感小站"></button>
+      <section class="module-drawer glass-panel" role="dialog" aria-modal="true" aria-labelledby="inspirationTitle">
+        <header class="drawer-head">
+          <div>
+            <span class="section-kicker">INSPIRATION STATION</span>
+            <h2 id="inspirationTitle">今晚想去哪里坐一会儿？</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-panel aria-label="关闭">×</button>
+        </header>
+        <div class="module-index" id="moduleIndex"></div>
+      </section>
+    </div>
 
-  <script>
-    $(document).ready(function () {
-      // 1. 入场动画：标题淡入并向下滑动
-      $('.home-header').css({
-        opacity: 0,
-        marginTop: '-30px'
-      }).animate({
-        opacity: 1,
-        marginTop: '0px'
-      }, 1500);
+    <div class="drawer-shell" id="aboutDrawer" hidden>
+      <button class="drawer-backdrop" type="button" data-close-panel aria-label="关闭关于我们"></button>
+      <section class="about-drawer glass-panel" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+        <header class="drawer-head">
+          <div>
+            <span class="section-kicker">ABOUT THE STATION</span>
+            <h2 id="aboutTitle">关于绯色心弦</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-panel aria-label="关闭">×</button>
+        </header>
+        <p class="about-lead">这里不是要求你立刻变好的地方。</p>
+        <p>它更像夜路旁的一盏灯：允许情绪被看见，也允许答案晚一点再来。</p>
+        <div class="about-values">
+          <span>温柔而不评判</span><span>安静但不疏离</span><span>陪伴而不催促</span>
+        </div>
+      </section>
+    </div>
 
-      // 2. 导航栏延迟淡入
-      $('.nav-pill').css('opacity', 0).delay(800).animate({ opacity: 1 }, 1000);
+    <aside class="music-dock glass-panel" aria-label="背景音乐控件">
+      <button class="music-toggle" id="musicToggle" type="button" aria-label="播放背景音乐">
+        <span aria-hidden="true">♪</span>
+      </button>
+      <div class="music-copy">
+        <strong>清雅的旋律</strong>
+        <small id="musicStatus">沉浸 · 疗愈 · 回到当下</small>
+      </div>
+      <div class="waveform" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+    </aside>
 
-      // 3. 交互动画：鼠标悬停/点击 Logo 时的特效
-      $('#mainLogo').css('cursor', 'pointer').hover(function () {
-        $(this).stop().animate({ paddingLeft: '45px', paddingRight: '45px' }, 200);
-      }, function () {
-        $(this).stop().animate({ paddingLeft: '34px', paddingRight: '34px' }, 200);
-      }).click(function () {
-        // 点击时的弹跳效果
-        $(this).animate({ top: '-10px' }, 100).animate({ top: '0px' }, 100);
-      });
-    });
-  </script>
-</body>
-
+    <script src="./src/js/main.js"></script>
+  </body>
 </html>

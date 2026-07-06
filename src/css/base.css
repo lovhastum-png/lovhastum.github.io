@@ -1,0 +1,106 @@
+:root {
+  color-scheme: dark;
+  --night-980: #02040a;
+  --night-950: #050914;
+  --night-900: #08111f;
+  --night-820: #0b1628;
+  --night-740: #111a2a;
+  --gold-500: #d9b66f;
+  --gold-420: #f1d18a;
+  --gold-650: #b98a45;
+  --ivory: #f7eddc;
+  --mist: #c8ced8;
+  --muted: #8f99aa;
+  --line: rgba(230, 203, 145, 0.22);
+  --line-strong: rgba(241, 209, 138, 0.55);
+  --glass: rgba(5, 11, 23, 0.68);
+  --glass-deep: rgba(3, 8, 18, 0.82);
+  --shadow: 0 22px 70px rgba(0, 0, 0, 0.42);
+  --glow: 0 0 32px rgba(217, 182, 111, 0.24);
+  --radius: 8px;
+  --ease: cubic-bezier(0.22, 0.75, 0.25, 1);
+  --font-cn: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+  --font-serif: "Songti SC", "STSong", "Noto Serif CJK SC", Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--night-980);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--ivory);
+  background: var(--night-980);
+  font-family: var(--font-cn);
+  letter-spacing: 0;
+}
+
+body.overlay-open {
+  overflow: hidden;
+}
+
+::selection {
+  color: var(--night-950);
+  background: var(--gold-420);
+}
+
+button,
+textarea,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(241, 209, 138, 0.82);
+  outline-offset: 3px;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+ul {
+  margin: 0;
+}
+
+img,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
