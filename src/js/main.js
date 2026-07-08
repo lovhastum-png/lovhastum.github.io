@@ -348,7 +348,7 @@
     return `
       <section class="page home-page">
         ${scene("home", "center center")}
-        <div class="petal-container" aria-hidden="true">${Array.from({length:15}, () => `<i class="petal" style="--dur:${6+Math.random()*6}s;--del:${Math.random()*4}s;left:${Math.random()*100}%;background:rgba(255,${180+Math.floor(Math.random()*60)},${200+Math.floor(Math.random()*55)},${0.3+Math.random()*0.35})"></i>`).join("")}</div>
+        <div class="petal-container" aria-hidden="true">${Array.from({length:15}, () => `<i class="petal" style="--dur:${6+Math.random()*6}s;--del:${Math.random()*4}s;left:${Math.random()*100}%;background:rgba(241,${190+Math.floor(Math.random()*40)},${130+Math.floor(Math.random()*50)},${0.3+Math.random()*0.35})"></i>`).join("")}</div>
         <div class="ui-layer home-layout">
           <div class="home-copy">
             <p class="home-kicker">✦ ${meta.gold}</p>
@@ -372,7 +372,7 @@
 
           <aside class="spotlight-panel">
             <p class="panel-label">SPOTLIGHT / 角色介绍</p>
-            <img src="./xiaoqingya/bizhi.png" alt="肖清雅" style="width:100%;max-width:260px;height:auto;max-height:380px;object-fit:contain;border-radius:12px;" />
+            <img src="./xiaoqingya/bizhi.png" alt="肖清雅" />
             <h2>肖清雅</h2>
             <span>HALF-ELF BARD</span>
             <p>半精灵吟游诗人，魅惑学院。只要是为了爱，规则稍微弯曲一下也没关系吧？</p>
@@ -828,15 +828,15 @@
           <section class="chat-panel window-note-panel" aria-label="窗边纸条留言区">
             <header class="chat-head"><div><small>WINDOW NOTE</small><strong>窗边留言笺</strong></div><span>灯还亮着</span></header>
             <p class="chat-whisper">不用讲完整。留下一句就好，这里不会判断你现在的状态。</p>
-            <div class="chat-messages" id="chatMessages" style="min-height:180px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px;margin-bottom:10px;overflow-y:auto;">${state.chatMessages.slice(-3).map((message) => `<p class="bubble ${message.who === "user" ? "user" : ""}" style="${message.who === "user" ? "background:rgba(241,169,170,0.25);color:#fadadd;border:1px solid rgba(241,169,170,0.3);" : "background:rgba(255,212,153,0.15);color:#ffe6b3;border:1px solid rgba(255,212,153,0.2);"}margin:6px 0;padding:8px 12px;border-radius:12px;max-width:85%;font-size:14px;line-height:1.6;${message.who === "user" ? "margin-left:auto;" : ""}">${escapeHtml(message.text)}</p>`).join("")}</div>
-            <div class="window-api-config" style="margin-bottom:10px;padding:10px;background:rgba(241,169,170,0.08);border:1px solid rgba(241,169,170,0.15);border-radius:8px;">
-              <label style="display:flex;align-items:center;gap:8px;">
-                <span style="color:#f1a9aa;font-size:12px;white-space:nowrap;">♡ DeepSeek API</span>
-                <input id="windowApiKey" type="password" placeholder="sk-..." style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 10px;color:#e8e0d0;font-size:13px;" />
+            <div class="chat-messages chat-messages-box" id="chatMessages">${state.chatMessages.slice(-3).map((message) => `<p class="bubble ${message.who === "user" ? "user" : ""}">${escapeHtml(message.text)}</p>`).join("")}</div>
+            <div class="window-api-config">
+              <label class="api-label">
+                <span class="api-label-text">♡ DeepSeek API</span>
+                <input id="windowApiKey" class="api-input" type="password" placeholder="sk-..." />
               </label>
-              <small style="display:block;margin-top:4px;color:#b0a898;font-size:11px;">填入你的 DeepSeek API Key，让肖清雅陪伴你聊天</small>
+              <small class="api-hint">填入你的 DeepSeek API Key，让肖清雅陪伴你聊天</small>
             </div>
-            <form class="chat-form" id="chatForm"><label class="sr-only" for="chatInput">窗边留言</label><input id="chatInput" maxlength="120" autocomplete="off" placeholder="把一句话写在纸条上…" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 14px;color:#e8e0d0;font-size:14px;"/><button class="note-send" type="submit" style="background:rgba(241,169,170,0.25);border:1px solid rgba(241,169,170,0.4);color:#f1a9aa;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;">递出纸条</button></form>
+            <form class="chat-form" id="chatForm"><label class="sr-only" for="chatInput">窗边留言</label><input id="chatInput" class="chat-input" maxlength="120" autocomplete="off" placeholder="把一句话写在纸条上…" /><button class="note-send" type="submit">递出纸条</button></form>
           </section>
         </div>
       </section>
